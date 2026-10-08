@@ -1,4 +1,9 @@
-data/
-results/
 __pycache__/
-*.parquet
+*.pyc
+.pytest_cache/
+*.egg-info/
+data/*
+!data/README.md
+results/
+*.sqlite
+*.db
