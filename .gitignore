@@ -7,3 +7,10 @@ data/*
 results/
 *.sqlite
 *.db
+ncm-skills.zip
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+paper/main.pdf
