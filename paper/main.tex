@@ -1,0 +1,161 @@
+% noise-ceiling-mol: paper draft (NeurIPS Datasets & Benchmarks track).
+% DRAFT. No experimental results exist yet: every result is a placeholder marked \TODO{...}.
+% To use the official style, replace the documentclass block below with
+%   \usepackage[dblblindworkshop]{neurips_2026}   % file not included here
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[numbers]{natbib}
+
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newtheorem{proposition}{Proposition}
+
+\title{Do Foundation Chemical Models Beat Small Models on Data They Have Not Seen?\\
+A Noise-Ceiling Evaluation on Fresh ChEMBL Benchmarks}
+\author{Anonymous authors \\ \small (draft)}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Molecular property benchmarks are widely used to rank pretrained (``foundation'') chemical models against
+classical fingerprint models, yet the labels they use are aggregated from many laboratories and are
+known to disagree with each other. We argue that leaderboard differences must be read against the
+measurement noise of the labels and against possible overlap between test molecules and pretraining or
+benchmark data. We build new, publicly released datasets from ChEMBL in which every molecule is measured
+in at least two independent documents and which exclude molecules and documents already present in public benchmarks and in the pretraining corpora of the evaluated models.
+From the replicate measurements we estimate a per-task \emph{noise ceiling} on achievable error and
+report model quality as a \emph{fraction of the ceiling}. We compare frozen embeddings of foundation chemical models with
+ECFP-based QSAR models and simple graph neural networks under random, scaffold and temporal splits, with and without decontamination.
+\TODO{one-sentence summary of the main empirical finding once experiments are run.}
+We release the data, code and a leaderboard expressed in fractions of the ceiling.
+\end{abstract}
+
+\section{Introduction}
+Benchmarks such as MoleculeNet~\citep{wu2018moleculenet}, the ADMET group of the Therapeutics Data Commons~\citep{huang2021tdc} and
+MoleculeACE~\citep{vantilborg2022moleculeace} shape which molecular machine learning methods are considered state of the art.
+Three observations make their comparisons hard to interpret. First, the labels are collected from many assays and publications, and
+combining IC50 or Ki values from different sources is a documented source of noise: with minimal curation roughly two thirds of points
+from different assays differ by more than $0.3$ log units~\citep{landrum2024noise}. Second, a systematic comparison of 25 pretrained
+molecular embedding models on 25 datasets found that nearly all of them show negligible or no improvement over the ECFP fingerprint~\citep{praski2025benchmarking}.
+Third, audits of public benchmarks report train--test leakage and contradictory labels for identical molecules, and report that such flaws
+can change which model ranks first (as summarised in press coverage of an audit of 51 benchmark configurations~\citep{chemistryworld2025audit}; primary source to be added).
+
+Together these observations raise a question the usual leaderboard cannot answer: when a foundation model improves a metric by a few hundredths,
+is this a real gain, or is it inside the noise of the labels, or is it caused by overlap with data the model has already seen?
+The notion that measurement error caps attainable accuracy is not new~\citep{kramer2012uncertainty,crusius2025fitting}. Crusius et al.\ derive performance bounds for nine datasets by
+adding noise of an assumed or published magnitude and find that four of them have been reached or exceeded~\citep{crusius2025fitting}.
+We complement this line of work in three ways.
+
+\paragraph{Contributions.}
+(1) We estimate the noise ceiling \emph{empirically} from replicate measurements of the same molecule in independent ChEMBL documents,
+instead of assuming a noise level. (2) We construct benchmarks from fresh ChEMBL documents that are decontaminated against public benchmarks and the pretraining data of the
+evaluated models, and release an uncleaned twin so that leakage can be measured. (3) We propose a ceiling-referenced metric and evaluation
+protocol and use it to compare foundation chemical models with fingerprint QSAR models and simple graph neural networks across random, scaffold and temporal splits.
+\TODO{add a sentence with the headline empirical finding after experiments.}
+
+\section{Related Work}
+\paragraph{Label noise in bioactivity data.}
+Kramer et al.\ discuss repeatability within a laboratory versus reproducibility across laboratories for public Ki data and argue that experimental
+uncertainty bounds the accuracy of any model, warning that naive pairwise comparison of ChEMBL duplicates is misleading because many
+duplicate measurements are not independent~\citep{kramer2012uncertainty}. Kalliokoski et al.\ study the comparability of mixed IC50 data~\citep{kalliokoski2013mixed}. Landrum and Riniker quantify noise between assays for the same
+molecule--target pair~\citep{landrum2024noise}. \TODO{verify all numbers against full texts.}
+
+\paragraph{Performance bounds.}
+Crusius et al.\ estimate realistic performance bounds from assumed experimental error and release the NoiseEstimator package~\citep{crusius2025fitting}.
+Our ceiling differs in that the noise variance is estimated from replicate measurements in independent documents for each task, rather than set from an assumed error.
+
+\paragraph{Benchmarks and their critiques.}
+MoleculeNet~\citep{wu2018moleculenet} and TDC~\citep{huang2021tdc} are standard collections; critiques point to invalid or stereochemically undefined structures,
+heterogeneous label sources and imbalance~\citep{welqrate2024}. MoleculeACE focuses on activity cliffs and reports that descriptor-based models
+outperform deep learning methods on cliff compounds~\citep{vantilborg2022moleculeace}. Polaris provides guidelines for dataset curation, splitting and statistical comparison of methods
+\TODO{add primary citation}.
+
+\paragraph{Pretrained molecular representations.}
+Praski et al.\ benchmark 25 pretrained embeddings with frozen features and a Bayesian ranking and find ECFP to be a strong baseline~\citep{praski2025benchmarking}. We use the same frozen-embedding spirit, but report results relative to the measurement ceiling and on decontaminated fresh data.
+
+\section{Problem Formalization}
+\subsection{Data and noise model}
+A \emph{task} $k$ is a pair (target, measurement type), for example (EGFR, $K_i$). Let $\mathcal{M}_k$ be the molecules of the task, and for molecule $i$ let
+$D_i$ be the set of documents reporting a value, $n_i=|D_i|$. Repeats inside one document are averaged, giving one value $y_{id}$ per pair $(i,d)$. We assume
+\begin{equation}
+y_{id} = t_i + e_{id}, \qquad \E[e_{id}]=0,\quad \Var(e_{id})=s_k^2 ,
+\end{equation}
+where $t_i$ is the molecule's latent value and $e_{id}$ collects between-document variability (laboratory, assay conditions, recording errors). The pooled estimator over molecules with $n_i\ge 2$ is
+\begin{equation}
+\hat s_k^2=\frac{\sum_i\sum_{d\in D_i}(y_{id}-\bar y_i)^2}{\sum_i (n_i-1)},\qquad \bar y_i=\frac1{n_i}\sum_{d\in D_i} y_{id}.
+\end{equation}
+This quantity measures \emph{all} between-source variability, including systematic assay shifts, and not only instrument error.
+
+\subsection{Noise ceiling}
+Models are trained and evaluated on the document-averaged label $\bar y_i$, whose noise variance is $s_k^2/n_i$.
+\begin{proposition}
+For any predictor $f$ that does not depend on the test labels, $\E[(\bar y_i - f(x_i))^2]\ge s_k^2/n_i$ for a test molecule $i$, with equality if $f(x_i)=t_i$. Consequently the expected test RMSE over a test set satisfies
+\begin{equation}
+\mathrm{RMSE}_k^{\text{floor}}=\sqrt{s_k^2\,\overline{(1/n_i)}},\qquad
+R^2_{\max,k}=1-\frac{s_k^2\,\overline{(1/n_i)}}{\Var(\bar y)} ,
+\end{equation}
+where $\overline{(1/n_i)}$ is the average over test molecules.
+\end{proposition}
+\noindent\emph{Sketch.} $\E[(\bar y_i-f)^2]=\E[(t_i-f)^2]+\Var(\bar e_i)\ge s_k^2/n_i$ because $\bar e_i$ is independent of $f(x_i)$. \hfill$\square$
+
+\subsection{Ceiling-referenced metric and leakage}
+For a model $m$ with test RMSE$_{k}(m)$ we define the \emph{fraction of the ceiling}
+\begin{equation}
+\mathrm{frac}_k(m)=\frac{\mathrm{RMSE}_k^{\text{floor}}}{\mathrm{RMSE}_k(m)}\quad\text{(or } R^2_k(m)/R^2_{\max,k}\text{)},
+\end{equation}
+and the \emph{leakage} caused by overlap with seen data as $L_k(m)=\mathrm{frac}_k^{\text{raw}}(m)-\mathrm{frac}_k^{\text{clean}}(m)$, where raw and clean denote the undecontaminated and decontaminated test sets. Values $\mathrm{frac}>1$ indicate that a model fits noise or exploits leakage and are flagged for inspection.
+Uncertainty is obtained by a cluster bootstrap over molecules.
+
+\subsection{Hypotheses}
+\begin{description}
+\item[H1 (small headroom).] On most tasks the best small model already attains a large fraction of the ceiling; the threshold $\delta_1$ is fixed after a pilot and before the main run.
+\item[H2 (differences inside noise).] For most tasks, the paired bootstrap confidence interval of $\Delta_k=\mathrm{RMSE}_k(\text{ECFP})-\mathrm{RMSE}_k(\text{foundation})$ contains $0$.
+\item[H3 (fragile advantage).] The gain $G(\text{split})=\mathrm{frac}(\text{foundation})-\mathrm{frac}(\text{ECFP})$ decreases from random to scaffold to temporal splits and after decontamination, and $L_k$ is larger for foundation models.
+\item[H4 (diagnostic).] Cases with $\mathrm{frac}>1$ are explained by noise fitting or leakage upon manual inspection.
+\end{description}
+Any outcome, including refutation, will be reported.
+
+\section{Dataset Construction}
+\paragraph{Extraction.} For each target in a list verified by name in ChEMBL we extract $K_i$ and IC$_{50}$ activities with relation ``$=$'', a defined pChEMBL value, empty data-validity comment, binding assay type and target confidence score $\ge 8$, excluding potential duplicates. \TODO{ChEMBL release and extraction date.}
+\paragraph{Standardisation.} Largest fragment, neutralisation, canonical SMILES and InChIKey connectivity block (RDKit). Different spellings of the same compound (acid, reordered SMILES, sodium salt) map to one key.
+\paragraph{Independence.} The unit of independence is the document; repeated reports of the same assay across documents are collapsed. \TODO{implement and test assay-level collapsing.}
+\paragraph{Decontamination.} We build a registry of InChIKeys from public benchmarks and published pretraining corpora of the evaluated models and remove exact matches and near analogues with ECFP4 Tanimoto similarity above a threshold chosen on a pilot (starting value $0.8$). We keep only documents published after each model's training cut-off; where a cut-off is not documented we mark it so. An uncleaned copy is retained.
+\paragraph{Task selection.} A task is kept if at least $N_{\min}$ molecules have $n_i\ge 2$ (starting value $100$); we aim for at least $15$ tasks. \TODO{final counts.}
+
+\section{Experimental Protocol}
+\paragraph{Models.} Small models: ECFP4 with gradient boosting, random forest and an MLP; simple graph networks (GCN, D-MPNN). Foundation models: frozen embeddings of ChemBERTa and MoLFormer-XL and \TODO{one or two additional open models, licence checked} with a linear or boosting head. The ECFP baseline receives the same tuning budget.
+\paragraph{Splits.} Random, scaffold (Bemis--Murcko) and temporal (by first publication year), with test fraction $0.2$, five seeds, and checks for leakage by InChIKey and scaffold.
+\paragraph{Statistics.} Cluster bootstrap over molecules, paired comparisons and multiplicity correction (Benjamini--Hochberg). Ablations: with and without decontamination, similarity threshold, $n_{\min}$ and trimming of large pair differences, $K_i$ versus IC$_{50}$.
+
+\section{Results}
+\TODO{All results pending data collection.} Planned tables:
+\begin{table}[h]\centering
+\begin{tabular}{lcccc}\toprule
+Model & random & scaffold & temporal & $L$ \\ \midrule
+ECFP + GBM & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+GCN / D-MPNN & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+ChemBERTa (frozen) & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+MoLFormer-XL (frozen) & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\ \bottomrule
+\end{tabular}
+\caption{Median fraction of the ceiling over tasks (placeholder; to be filled from \texttt{results/}).}
+\end{table}
+
+\section{Discussion and Limitations}
+The ceiling measures between-source variability, not instrument error, and assumes homoscedastic noise and that replicated molecules are typical of the task; replicated molecules tend to be well studied and may be unrepresentative. Documents are the unit of independence but the same assay can appear in several documents. Training cut-offs of some models are undocumented, which weakens the temporal decontamination. Results are limited to ChEMBL-derived potency data. \TODO{extend after experiments.}
+
+\section*{Reproducibility and Broader Impact}
+Code, extraction scripts, the ChEMBL release identifier, seeds and decontamination registries will be released. All data are public and no personal data are used. Better-calibrated evaluation of molecular models can reduce wasted experimental effort, while over-claiming of benchmark gains has the opposite effect. \TODO{checklist items required by the track.}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
