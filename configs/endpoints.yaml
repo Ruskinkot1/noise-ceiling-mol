@@ -1,0 +1,34 @@
+# Кандидаты эндпойнтов. chembl_id и названия записаны по памяти -> НЕ ПРОВЕРЕНО.
+# Источник истины: `python scripts/01_extract_chembl.py --discover` (ранжирует мишени по числу
+# молекул с >=2 документами) — финальный список берётся оттуда, этот файл лишь стартовый.
+min_docs: 2             # минимум разных документов на молекулу
+min_replicated_mols: 100  # порог «достаточно повторов» для включения задачи (критерий нед. 3 — минимум 15 задач)
+max_abs_pair_diff: 3.0  # пары с |Δ pChEMBL| > 3 считаются ошибками единиц/записи и отбрасываются (чувствительность — в scripts/03)
+chembl_candidates:
+  - {id: CHEMBL203,  note: "EGFR (не проверено)"}
+  - {id: CHEMBL204,  note: "тромбин (не проверено)"}
+  - {id: CHEMBL205,  note: "карбоангидраза II (не проверено)"}
+  - {id: CHEMBL206,  note: "ESR1 (не проверено)"}
+  - {id: CHEMBL210,  note: "ADRB2 (не проверено)"}
+  - {id: CHEMBL213,  note: "ADRB1 (не проверено)"}
+  - {id: CHEMBL214,  note: "5-HT1A (не проверено)"}
+  - {id: CHEMBL217,  note: "D2 (не проверено)"}
+  - {id: CHEMBL218,  note: "CB1 (не проверено)"}
+  - {id: CHEMBL224,  note: "5-HT2A (не проверено)"}
+  - {id: CHEMBL228,  note: "SERT (не проверено)"}
+  - {id: CHEMBL233,  note: "mu-опиоидный (не проверено)"}
+  - {id: CHEMBL234,  note: "D3 (не проверено)"}
+  - {id: CHEMBL237,  note: "kappa-опиоидный (не проверено)"}
+  - {id: CHEMBL240,  note: "hERG (не проверено)"}
+  - {id: CHEMBL244,  note: "FXa (не проверено)"}
+  - {id: CHEMBL279,  note: "VEGFR2 (не проверено)"}
+  - {id: CHEMBL325,  note: "HDAC1 (не проверено)"}
+  - {id: CHEMBL340,  note: "CYP3A4 (не проверено)"}
+  - {id: CHEMBL1824, note: "HER2 (не проверено)"}
+  - {id: CHEMBL1862, note: "ABL1 (не проверено)"}
+  - {id: CHEMBL4005, note: "PI3K-alpha (не проверено)"}
+  - {id: CHEMBL2095, note: "(не проверено; заменить по результатам --discover)"}
+standard_types: [IC50, Ki]   # считаются отдельно: задача = (мишень, тип измерения)
+# TDC: повторов между источниками в самих наборах нет -> потолок для них берётся из литературной
+# оценки экспериментальной ошибки (не проверено) либо из дублей в ChEMBL; помечать отдельно.
+tdc_candidates: [Caco2_Wang, Lipophilicity_AstraZeneca, Solubility_AqSolDB, HalfLife_Obach]
