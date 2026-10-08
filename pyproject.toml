@@ -1,0 +1,13 @@
+[project]
+name = "ncmol"
+version = "0.1.0"
+description = "Noise ceiling for molecular property benchmarks"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "scipy", "scikit-learn", "rdkit", "pyyaml"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
