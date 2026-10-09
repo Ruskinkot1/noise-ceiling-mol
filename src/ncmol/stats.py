@@ -289,3 +289,76 @@ def slice_flag(lo: float, hi: float, lower_is_better: bool = True) -> str:
         return "внутри шума"
     better = (hi < 0) if lower_is_better else (lo > 0)
     return "модель лучше" if better else "модель хуже"
+
+
+# --------------------------------------------------------------------------------------------
+# Загрузка предсказаний (схема results/predictions.csv, см. docs/experiment_design.md)
+# --------------------------------------------------------------------------------------------
+PRED_REQUIRED = ["task", "split", "seed", "model", "mol_id", "pred"]
+
+
+def load_predictions(results_dir, processed_dir):
+    """Читает results/predictions.(parquet|csv): task, split, seed, model, mol_id, pred
+    [+ y, n_docs, y_train_mean — если нет, достраиваются]. y и n_docs берутся из
+    <processed>/<task>.molecules.csv; y_train_mean (среднее y по train своего сплита и сида)
+    пересчитывается тем же сплитом (ncmol.splits; сплиты детерминированы по сиду) — требует,
+    чтобы molecules.csv был тем же файлом, что читал scripts/04. Если файла нет — None."""
+    from pathlib import Path
+
+    import pandas as pd
+
+    from .splits import SPLITS
+
+    r, pdir = Path(results_dir), Path(processed_dir)
+    pq, csv = r / "predictions.parquet", r / "predictions.csv"
+    if pq.exists():
+        try:
+            p = pd.read_parquet(pq)
+        except Exception:  # нет pyarrow/fastparquet
+            p = pd.read_csv(csv) if csv.exists() else None
+    elif csv.exists():
+        p = pd.read_csv(csv)
+    else:
+        return None
+    if p is None:
+        return None
+    miss = [c for c in PRED_REQUIRED if c not in p.columns]
+    if miss:
+        raise ValueError(f"predictions: нет столбцов {miss}")
+    parts = []
+    for t, g in p.groupby("task"):
+        mol = pd.read_csv(pdir / f"{t}.molecules.csv")
+        g = g.copy()
+        for c in ("y", "n_docs"):
+            if c not in g.columns:
+                g[c] = g["mol_id"].map(mol.set_index("mol_id")[c])
+        if "y_train_mean" not in g.columns:
+            ytm = {}
+            for sp, seed in g[["split", "seed"]].drop_duplicates().itertuples(index=False):
+                tr, _ = SPLITS[sp](mol, int(seed))
+                ytm[(sp, seed)] = float(mol["y"].iloc[tr].mean())
+            g["y_train_mean"] = [ytm[(a, b)] for a, b in zip(g["split"], g["seed"])]
+        parts.append(g)
+    return pd.concat(parts, ignore_index=True)
+
+
+def wide_by_model(g, models):
+    """g — предсказания одной (task, split). Возвращает (base_df, P) где base_df — столбцы
+    seed, mol_id, y, n_docs, y_train_mean (по строке = молекула в тесте сида), P — (n, len(models))
+    предсказания; берётся пересечение ключей (seed, mol_id) по всем моделям."""
+    piv = g.pivot_table(index=["seed", "mol_id"], columns="model", values="pred", aggfunc="first")
+    models = [m for m in models if m in piv.columns]
+    piv = piv[models].dropna()
+    base = (g.drop_duplicates(["seed", "mol_id"]).set_index(["seed", "mol_id"])
+            .loc[piv.index, ["y", "n_docs", "y_train_mean"]].reset_index())
+    return base, piv.to_numpy(float), models
+
+
+def frac_ceiling_multi(idx, y, P, ytm, nd, sigma) -> np.ndarray:
+    """Доля потолка для всех столбцов P на строках idx (один и тот же floor и rmse_mean)."""
+    y, P, ytm, nd = y[idx], P[idx], ytm[idx], nd[idx]
+    floor = float(sigma) * float(np.sqrt(np.mean(1.0 / nd)))
+    rm = _rmse(y, ytm)
+    rmse = np.sqrt(np.mean((y[:, None] - P) ** 2, axis=0))
+    den = rm - floor
+    return (rm - rmse) / den if den > 0 else np.full(P.shape[1], np.nan)
