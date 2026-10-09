@@ -1,0 +1,10 @@
+\section{Limitations}\label{sec:limits}
+\begin{itemize}
+\item \textbf{Cross-source noise is not pure instrument error.} The estimate includes systematic assay differences (protocol, conditions, reagents), curation and recording errors; it is an upper-type bound on irreducible error relative to a single well-controlled assay, and may overstate the ceiling gap there.
+\item \textbf{Homoscedasticity.} A single $s^2$ per task is assumed; noise may depend on activity level or chemotype.
+\item \textbf{Atypical replicated molecules.} Compounds measured in several documents (reference compounds, popular series) may differ from the rest of the set, so the ceiling may not transfer.
+\item \textbf{Leakage and unknown cut-offs.} Pretraining corpora and date cut-offs of some foundation models are unknown or not verified; decontamination reduces but cannot exclude overlap.
+\item \textbf{No fine-tuning of foundation models.} Only frozen embeddings with a head are tested; conclusions do not extend to fine-tuned models.
+\item \textbf{Scope.} Potency endpoints ($K_i$, $\mathrm{IC}_{50}$) from ChEMBL only; results on ADMET or other property types are not claimed. Test labels are noisy; the attenuation correction is \tbd{}.
+\item \textbf{Status.} Steps on real ChEMBL data have not been run yet.
+\end{itemize}

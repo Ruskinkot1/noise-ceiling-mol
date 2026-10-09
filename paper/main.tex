@@ -1,0 +1,34 @@
+% ЧЕРНОВИК. Официальный стиль NeurIPS 2026 существует (neurips_2026.sty в архиве
+% https://media.neurips.cc/Conferences/NeurIPS2026/Formatting_Instructions_For_NeurIPS_2026.zip,
+% проверено: HTTP 200, внутри neurips_2026.tex, neurips_2026.sty, checklist.tex).
+% Файл НЕ скопирован в репозиторий. Если neurips_2026.sty лежит рядом, он подключается;
+% иначе используется каркас article (ЗАМЕНИТЬ НА ОФИЦИАЛЬНЫЙ СТИЛЬ перед отправкой).
+\documentclass{article}
+\IfFileExists{neurips_2026.sty}{\usepackage{neurips_2026}}{%
+  \usepackage[margin=1in]{geometry}\newcommand{\And}{\quad}\newcommand{\AND}{\\}}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,booktabs,hyperref,xcolor,enumitem}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\tbd}{\textcolor{red}{TBD}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+
+\title{Noise Ceilings for Molecular Property Benchmarks:\\ How Much of Model Ranking Lies Inside Measurement Noise?}
+\author{Anonymous authors \\ \todo{authors; anonymity per track rules, not verified}}
+
+\begin{document}
+\maketitle
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/data}
+\input{sections/ceiling}
+\input{sections/benchmark}
+\input{sections/results}
+\input{sections/recommendations}
+\input{sections/limitations}
+\input{sections/datasheet}
+% Bibliography: paper/references.bib (W8). Until it exists, \cite{TODO-...} render as [?].
+\IfFileExists{references.bib}{\bibliographystyle{plain}\bibliography{references}}{}
+\end{document}
