@@ -76,25 +76,42 @@ def estimate_ceiling(df: pd.DataFrame, min_docs: int = 2, max_abs_pair_diff: flo
     )
 
 
-def bootstrap_ceiling(df: pd.DataFrame, n_boot: int = 1000, seed: int = 0, **kw) -> pd.DataFrame:
-    """Бутстрэп по МОЛЕКУЛАМ (кластерный). Возвращает перцентили 2.5/50/97.5 для sigma, rmse_floor, r2_max."""
+def bootstrap_ceiling(df: pd.DataFrame, n_boot: int = 1000, seed: int = 0, min_docs: int = 2,
+                      max_abs_pair_diff: float | None = 3.0, mean_label: bool = True) -> pd.DataFrame:
+    """Бутстрэп по МОЛЕКУЛАМ (кластерный), векторный. Совпадает с estimate_ceiling на каждой выборке.
+    Возвращает перцентили 2.5/50/97.5 для sigma, rmse_floor, r2_max."""
+    d = doc_level(df)
+    g = d.groupby("mol_id")["y"]
+    mol = pd.DataFrame({"n": g.size(), "mean": g.mean(), "sum": g.sum(),
+                        "sum2": (d["y"] ** 2).groupby(d["mol_id"]).sum(),
+                        "rng": g.max() - g.min()})
+    mol["ss"] = mol["sum2"] - mol["sum"] ** 2 / mol["n"]
+    ok = (mol["n"] >= min_docs).to_numpy().copy()
+    if max_abs_pair_diff is not None:
+        ok = ok & (mol["rng"] <= max_abs_pair_diff).to_numpy()
+    n, m, ss = mol["n"].to_numpy(float), mol["mean"].to_numpy(), mol["ss"].to_numpy()
+    sy, sy2 = mol["sum"].to_numpy(), mol["sum2"].to_numpy()
     rng = np.random.default_rng(seed)
-    mols = df["mol_id"].unique()
-    groups = {m: g for m, g in df.groupby("mol_id")}
+    k = len(mol)
     rows = []
-    for b in range(n_boot):
-        pick = rng.choice(mols, size=len(mols), replace=True)
-        parts = []
-        for j, m in enumerate(pick):
-            g = groups[m].copy()
-            g["mol_id"] = f"{m}#{j}"
-            parts.append(g)
-        c = estimate_ceiling(pd.concat(parts), **kw)
-        rows.append((c.sigma, c.rmse_floor, c.r2_max))
+    for _ in range(n_boot):
+        w = np.bincount(rng.integers(0, k, k), minlength=k).astype(float)
+        dof = (w * ok * (n - 1)).sum()
+        s2 = (w * ok * ss).sum() / dof if dof > 0 else np.nan
+        if mean_label:
+            mu = (w * m).sum() / w.sum()
+            var_y = (w * (m - mu) ** 2).sum() / (w.sum() - 1)
+            kf = (w / n).sum() / w.sum()
+        else:
+            cnt = (w * n).sum()
+            var_y = ((w * sy2).sum() - (w * sy).sum() ** 2 / cnt) / (cnt - 1)
+            kf = 1.0
+        s2e = s2 * kf
+        rows.append((np.sqrt(s2), np.sqrt(s2e), float(np.clip(1 - s2e / var_y, 0, 1))))
     arr = np.array(rows)
     out = {}
-    for k, name in enumerate(["sigma", "rmse_floor", "r2_max"]):
-        lo, med, hi = np.nanpercentile(arr[:, k], [2.5, 50, 97.5])
+    for j, name in enumerate(["sigma", "rmse_floor", "r2_max"]):
+        lo, med, hi = np.nanpercentile(arr[:, j], [2.5, 50, 97.5])
         out.update({f"{name}_lo": lo, f"{name}_med": med, f"{name}_hi": hi})
     return pd.DataFrame([out])
 
