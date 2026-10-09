@@ -51,7 +51,7 @@ def make_model(name: str, seed: int, params: dict | None = None):
         return RandomForestRegressor(n_estimators=300, n_jobs=-1, random_state=seed, **p)
     if f == "mlp":
         return make_pipeline(StandardScaler(), MLPRegressor(
-            tuple(p.get("hidden", (512, 128))), alpha=p.get("alpha", 1e-3), learning_rate_init=p.get("lr", 1e-3),
+            hidden_layer_sizes=tuple(p.get("hidden", (512, 128))), alpha=p.get("alpha", 1e-3), learning_rate_init=p.get("lr", 1e-3),
             early_stopping=True, max_iter=300, random_state=seed))
     if f == "ridge":
         return make_pipeline(StandardScaler(), Ridge(alpha=p.get("alpha", 10.0)))
