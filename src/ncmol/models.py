@@ -1,4 +1,8 @@
-"""Модели. Все — sklearn, ноутбучные. D-MPNN и эмбеддинги — через внешние признаки/chemprop (см. README)."""
+"""Модели: sklearn-головы + собственный D-MPNN на torch (gnn.py). Эмбеддинги — предвычисленные
+(scripts/06_embed_foundation.py), поверх них те же sklearn-головы.
+
+Интерфейс: featurize(name, ...) возвращает 2D-матрицу признаков, а для 'gnn_*' — массив SMILES
+(object), который модель разбирает сама; индексация X[tr] в scripts/04 работает одинаково."""
 from __future__ import annotations
 
 import numpy as np
@@ -15,6 +19,9 @@ BASELINE = "ecfp_gbm"
 
 def make_model(name: str, seed: int):
     base = name.split(":")[0]
+    if base.startswith("gnn"):
+        from .gnn import DMPNNRegressor
+        return DMPNNRegressor(seed=seed)
     if base.endswith("_gbm"):
         return HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, random_state=seed)
     if base.endswith("_rf"):
@@ -28,8 +35,10 @@ def make_model(name: str, seed: int):
 
 
 def featurize(name: str, smiles, mol_ids, emb_dir=None):
-    """'ecfp_*' -> ECFP4 counts 2048; 'emb-<model>_*' -> предвычисленный эмбеддинг из emb_dir/<model>.npz
+    """'gnn_*' -> SMILES (object-массив); 'ecfp_*' -> ECFP4 counts 2048; 'emb-<model>_*' -> предвычисленный эмбеддинг из emb_dir/<model>.npz
     (ключи: mol_ids, X)."""
+    if name.startswith("gnn"):
+        return np.asarray(list(smiles), dtype=object)
     if name.startswith("ecfp"):
         return ecfp(list(smiles))
     if name.startswith("emb-"):
