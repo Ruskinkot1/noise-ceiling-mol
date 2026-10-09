@@ -1,0 +1,11 @@
+\section{Benchmark}
+\paragraph{Models.}
+(a) Small models on ECFP: gradient boosting (GBM), random forest (RF), MLP. (b) A graph neural network (D-MPNN via chemprop~\cite{TODO-chemprop}; not yet connected). (c) Frozen foundation-model embeddings, e.g.\ ChemBERTa~\cite{TODO-chemberta} and MoLFormer~\cite{TODO-molformer}, with a trained head (GBM/MLP/ridge); final list of 3--4 open models \tbd{}, checkpoints and pretraining corpora to be documented. No fine-tuning of foundation models; this is an explicit limitation.
+\paragraph{Fairness.}
+Identical data, splits and seeds for all models; equal hyperparameter-search budget for ECFP baselines, GNN and embedding heads; ECFP+GBM/RF tuned as carefully as any pretrained model. Search spaces and budget: \tbd{}.
+\paragraph{Splits and seeds.}
+Random, scaffold (Bemis--Murcko) and temporal splits; 5 seeds. Temporal split uses document year; fraction \tbd{}.
+\paragraph{Evaluation.}
+RMSE, $R^2$, $f$ with bootstrap CIs over test molecules; paired comparison against ECFP+GBM per task with multiple-comparison correction (method \tbd{}); differences inside the noise are labelled as such. Planned slices (difference to ECFP+GBM with CI): target, split, molecule noise, Tanimoto-to-train bins, activity cliffs, activity range.
+\paragraph{Provenance.}
+Every result records ChEMBL release and download date, code commit, seeds and split type.

@@ -1,0 +1,15 @@
+\section{Data}
+\paragraph{Source and version.}
+Data come from ChEMBL~\cite{TODO-chembl} via its REST API (\texttt{scripts/01\_extract\_chembl.py}). Release and download date: \tbd{} (the latest release visible on the ChEMBL FTP README at the time of writing was chembl\_37, dated 01/05/2026; the release actually used is not yet fixed). Targets: candidate list in \texttt{configs/endpoints.yaml}; ChEMBL target IDs there were entered from memory and are \emph{not verified}.
+
+\paragraph{Filters.}
+\todo{fill from final config: standard type in \{Ki, IC50\}, relation `=', units nM, pChEMBL value present, assay confidence, validity flags, molecule standardisation with RDKit}. We aggregate to one value per (molecule, document) by averaging within a document, so that replicates are \emph{between-document}. A task is a (target, measurement type) pair; $\mathrm{IC}_{50}$ and $K_i$ are never pooled. A task is kept if it has enough replicated molecules (threshold \tbd{}); the project requires at least 15 tasks, otherwise the claim is narrowed. Number of tasks passing: \tbd{}.
+
+\paragraph{Replicate statistics.}
+Share of molecules with $\ge 2$ documents, distribution of between-document differences $|\Delta|$, outlier pairs (suspected unit errors), Ki vs.\ $\mathrm{IC}_{50}$, duplicates and stereoisomers (InChIKey first block vs.\ full), shared authors: \tbd{} (audit script \texttt{02c\_audit\_data.py} is not yet implemented).
+
+\paragraph{Decontamination.}
+We remove molecules and endpoints present in public benchmarks (list of benchmarks: \tbd{}) and, where possible, in pretraining corpora of the evaluated foundation models. Pretraining corpora and cut-off dates of several models are partly unknown (``not verified''); we therefore report results on cleaned vs.\ uncleaned data to measure leakage. Counts removed: \tbd{}.
+
+\paragraph{The ``own'' dataset.}
+The released dataset consists of replicated molecules/endpoints \emph{not} included in existing benchmarks after decontamination. Size, endpoints, document counts: \tbd{}.

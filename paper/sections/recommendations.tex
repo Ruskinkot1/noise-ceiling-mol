@@ -1,0 +1,14 @@
+\section{Recommendations}
+\paragraph{Minimum detectable effect (MDE).}
+Given test size $n$, the noise floor, the paired standard deviation of per-molecule error differences $\sigma_d$, and the number of tasks/comparisons, the smallest RMSE difference detectable at level $\alpha$ and power $1-\beta$ is approximately $(z_{1-\alpha/2}+z_{1-\beta})\,\sigma_d/\sqrt{n}$ for a paired comparison (before multiple-comparison correction; formula to be validated by simulation \todo{validate}). Differences below the MDE or inside the ceiling uncertainty should not be reported as improvements. Empirical MDE values: \tbd{}.
+\paragraph{Reporting protocol.}
+Report per endpoint: estimated $\hat\sigma$ with CI and number of replicated molecules; $f$ alongside RMSE/$R^2$; ChEMBL release and date; split type and seeds; paired CIs against a tuned ECFP+GBM baseline; leakage checks (InChIKey, scaffold, temporal, pretraining-corpus overlap).
+\paragraph{Checklist.}
+\begin{itemize}[nosep]
+\item Are replicates from independent documents, and how many per molecule?
+\item Is the ceiling computed on the test molecules, with CI and sensitivity to thresholds?
+\item Is the baseline tuned with the same budget as the proposed model?
+\item Are three split types and $\ge5$ seeds reported?
+\item Is $f>1$ investigated as possible leakage or noise fitting?
+\item Is pretraining-data overlap with the test set checked or stated as unknown?
+\end{itemize}

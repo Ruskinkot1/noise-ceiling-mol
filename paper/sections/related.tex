@@ -1,0 +1,20 @@
+\section{Related work}
+Statements below are based on abstracts and search excerpts (see \texttt{docs/NOVELTY.md}); full texts must be read before submission \todo{read in full; re-run search incl.\ Polaris, TDC, ``label noise'' ADMET}.
+
+\paragraph{Closest work: performance bounds from noise.}
+\emph{``Are we fitting data or noise?''} (Faraday Discussions 2025)~\cite{TODO-fitting-data-or-noise} derives aleatoric/realistic performance bounds by adding noise of the size of the experimental error to labels, over nine datasets, and reports that on several of them models reach or exceed the bound. We differ in the source of the noise: they use an \emph{assumed or published} error magnitude; we \emph{estimate} it empirically from the same molecules measured in different ChEMBL documents, with bootstrap uncertainty and sensitivity to filtering. We additionally express model scores as a fraction of the ceiling, and compare pretrained embeddings with ECFP under three split types. Authors and exact details of that paper: not verified.
+
+\paragraph{Inter-assay noise in ChEMBL.}
+Landrum and Riniker (J.\ Chem.\ Inf.\ Model.\ 2024)~\cite{TODO-landrum-riniker} quantify the disagreement of $\mathrm{IC}_{50}$/$K_i$ values for the same molecule--target pair from different sources. They characterise the noise but do not convert it into a limit on model accuracy or rescore models. Earlier statistical analyses of mixed $\mathrm{IC}_{50}$ data~\cite{TODO-mixed-ic50-2013} and a 2025 study on matched molecular pairs~\cite{TODO-mmp-noise-2025} (title/authors not verified) are complementary.
+
+\paragraph{Embeddings versus fingerprints.}
+A large benchmark of 25 pretrained embedding models on 25 datasets~\cite{TODO-pretrained-embeddings-benchmark} finds that nearly all neural models do not outperform ECFP. It does not account for label noise or use a ceiling-relative score.
+
+\paragraph{Activity cliffs and benchmark curation.}
+MoleculeACE~\cite{TODO-moleculeace} studies activity cliffs across 30 targets; it curates against spurious cliffs but does not estimate a noise-limited ceiling.
+
+\paragraph{Preprints (2026, unverified).}
+Two arXiv preprints on property cliffs and on GNN pretraining~\cite{TODO-arxiv-2605-17265,TODO-arxiv-2605-10722} are noted in \texttt{docs/NOVELTY.md}; relevance not verified, cite only after reading.
+
+\paragraph{Positioning.}
+Our novelty is the combination of empirical cross-document ceilings, a ceiling-relative metric, and a split-resolved test of pretrained embeddings; each component alone is partly covered by prior work.

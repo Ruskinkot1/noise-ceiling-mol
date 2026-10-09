@@ -1,0 +1,23 @@
+\section{Noise ceiling}
+\paragraph{Model.}
+For molecule $i$ and document $j$, $y_{ij}=t_i+e_{ij}$ with $\E e_{ij}=0$, $\Var e_{ij}=s^2$, where $t_i$ is the true value and $e_{ij}$ collects all between-document variation. Values within one document are averaged first. With $n_i$ documents for molecule $i$ and $\bar y_i$ their mean, the pooled within-molecule variance over molecules with $n_i\ge 2$ is
+\begin{equation}
+\hat s^2=\frac{\sum_i\sum_{j}(y_{ij}-\bar y_i)^2}{\sum_i (n_i-1)} .
+\end{equation}
+\paragraph{Floors.}
+If the modelled label is the mean over documents, its noise variance is $s^2/n_i$, so over a set of molecules
+\begin{align}
+\mathrm{RMSE}_{\mathrm{floor}}&=\sqrt{\hat s^2\,\overline{(1/n_i)}}, &
+R^2_{\max}&=1-\frac{\hat s^2\,\overline{(1/n_i)}}{\Var(y)}, &
+\mathrm{MAE}_{\mathrm{floor}}&=\mathrm{RMSE}_{\mathrm{floor}}\sqrt{2/\pi},
+\end{align}
+the last assuming Gaussian noise; $R^2_{\max}$ is clipped to $[0,1]$. For evaluation the factor $\overline{(1/n_i)}$ is computed over the \emph{test} molecules.
+\paragraph{Fraction of ceiling.}
+Primary:
+\begin{equation}
+f=\frac{\mathrm{RMSE}_{\text{mean}}-\mathrm{RMSE}_{\text{model}}}{\mathrm{RMSE}_{\text{mean}}-\mathrm{RMSE}_{\mathrm{floor}}},
+\end{equation}
+where $\mathrm{RMSE}_{\text{mean}}$ is that of predicting the training mean on the same test set. $f=0$: no better than the mean; $f=1$: at the noise floor; $f>1$: suspected noise fitting or leakage; $f<0$: worse than the mean. Auxiliary (tables only): $f_{\mathrm{rmse}}=\mathrm{RMSE}_{\mathrm{floor}}/\mathrm{RMSE}$ and $f_{R^2}=R^2/R^2_{\max}$. Since test labels are noisy, a correction for attenuation is \tbd{}.
+\paragraph{Uncertainty and robustness.}
+Cluster bootstrap over molecules (percentile 95\% intervals for $\hat s$, floor, $R^2_{\max}$); sensitivity to the minimum number of documents ($2,3$) and to trimming pairs with $|\Delta|$ above $\{\infty,3,2,1\}$ pChEMBL units (guarding against unit-recording errors). Implemented in \texttt{src/ncmol/ceiling.py}; checked only on synthetic data (recovered $\hat\sigma=0.42$ for true $0.4$).
+\paragraph{Assumptions.} See Section~\ref{sec:limits}.
