@@ -1,7 +1,7 @@
 # noise-ceiling-mol
 
 **Потолок шума: что на самом деле измеряют бенчмарки молекулярных свойств, и бьют ли предобученные эмбеддинги ECFP при честной оценке относительно предела измерения.**
-Целевой трек: NeurIPS Datasets & Benchmarks. Статус: **ранний прототип** — код шагов 3–5 проверен на синтетических данных, шаги 1–2 на реальной ChEMBL **ещё не запускались**.
+Целевой трек: NeurIPS Datasets & Benchmarks. Статус: **ранний прототип** — код шагов 3–5 проверен на синтетических данных, шаг 1 переписан под REST API (тест парсинга на моке), шаги 1–2 на полном наборе мишеней **ещё не запускались**.
 
 ## Гипотеза
 1. Межлабораторная ошибка в ChEMBL сравнима с ошибкой моделей → часть различий между моделями лежит внутри шума меток.
@@ -23,10 +23,8 @@
 ## Структура
 ```
 configs/endpoints.yaml   кандидаты мишеней (chembl_id по памяти — НЕ ПРОВЕРЕНО), пороги
-sql/replicates.sql       выборка измерений одной мишени (IC50/Ki, '=', nM, pChEMBL, confidence>=8)
-sql/discover_targets.sql ранжирование мишеней по числу молекул с >=2 документами
 src/ncmol/               chem (стандартизация, ECFP), ceiling, splits, models, metrics
-scripts/01_extract_chembl.py   выгрузка из SQLite ChEMBL (+ --discover)
+scripts/01_extract_chembl.py   выгрузка из ChEMBL REST API (SQLite-дамп не используется)
 scripts/02_standardize.py      RDKit-стандартизация, один y на (молекула, документ), tasks.csv
 scripts/03_estimate_ceiling.py потолок + бутстрэп + чувствительность
 scripts/04_run_benchmark.py    ECFP+GBM/RF/MLP × 3 сплита × 5 сидов
@@ -39,9 +37,7 @@ docs/NOVELTY.md          этап 0
 ```bash
 pip install -e .            # + pytest
 pytest                      # синтетические тесты
-# ChEMBL SQLite скачать в data/chembl/ (имя файла зависит от релиза)
-python scripts/01_extract_chembl.py --db data/chembl/chembl_XX.db --discover --top 60 --min-mols 100
-python scripts/01_extract_chembl.py --db data/chembl/chembl_XX.db     # или --targets CHEMBL...
+python scripts/01_extract_chembl.py --targets CHEMBL240     # по API; без --targets — кандидаты из configs/endpoints.yaml
 python scripts/02_standardize.py        # печатает, сколько задач прошло порог (нужно >= 15)
 python scripts/03_estimate_ceiling.py
 python scripts/04_run_benchmark.py
@@ -62,4 +58,4 @@ python scripts/05_fraction_of_ceiling.py
 
 ## Project skills
 
-Claude skills for this project live in `.claude/skills/` (`ncm-researcher`, `ncm-novelty-check`, `ncm-collect-replicates`, `ncm-decontaminate`, `ncm-benchmark-models`, `ncm-ceiling-metric`). Sprint notes: `docs/sprint-40min.md`. Early pilot collector: `scripts/collect_replicates.py`.
+Claude skills for this project live in `.claude/skills/` (`ncm-researcher`, `ncm-novelty-check`, `ncm-collect-replicates`, `ncm-decontaminate`, `ncm-benchmark-models`, `ncm-ceiling-metric`). Sprint notes: `docs/sprint-40min.md`. 

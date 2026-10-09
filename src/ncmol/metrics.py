@@ -15,3 +15,10 @@ def fraction_of_ceiling(rmse, r2, rmse_floor, r2_max) -> dict:
     frac_r2 = r2/r2_max."""
     return {"frac_rmse": rmse_floor / rmse if rmse > 0 else np.nan,
             "frac_r2": r2 / r2_max if r2_max and r2_max > 0 else np.nan}
+
+
+def frac_ceiling(rmse, rmse_mean, rmse_floor) -> float:
+    """ОСНОВНАЯ метрика: (RMSE_mean - RMSE)/(RMSE_mean - RMSE_floor). 0 = предсказание среднего,
+    1 = потолок шума, >1 = подозрение на подгонку шума/утечку, <0 = хуже среднего."""
+    den = rmse_mean - rmse_floor
+    return (rmse_mean - rmse) / den if den > 0 else float("nan")

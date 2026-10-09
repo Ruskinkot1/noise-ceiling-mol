@@ -4,6 +4,7 @@
 import argparse
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from ncmol.metrics import regression_metrics
@@ -36,6 +37,8 @@ def main():
                     X = feats[m]
                     model = make_model(m, seed).fit(X[tr], df["y"].iloc[tr])
                     met = regression_metrics(df["y"].iloc[te], model.predict(X[te]))
+                    # RMSE предсказателя «среднее по train» на том же тесте: нулевая точка шкалы доли потолка
+                    met["rmse_mean"] = float(np.sqrt(np.mean((df["y"].iloc[te].to_numpy() - df["y"].iloc[tr].mean()) ** 2)))
                     # n_docs тест-молекул нужен для эффективного шума метки (шаг 5)
                     rows.append({"task": t, "split": sp, "seed": seed, "model": m, "n_train": len(tr),
                                  "n_test": len(te), "test_mean_inv_ndocs": float((1 / df["n_docs"].iloc[te]).mean()),
