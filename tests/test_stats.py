@@ -31,7 +31,7 @@ def test_cluster_bootstrap_ci_covers_and_clusters_matter():
     lo, hi = stats.percentile_ci(d)
     assert lo < x.mean() < hi
     naive = x.std() / np.sqrt(len(x))
-    assert d.std() > 3 * naive  # истинная SE ≈ 0.1, наивная ≈ 0.045
+    assert abs(d.std() - 0.1) < 0.02 and d.std() > 2 * naive  # SE = sd(mu)/sqrt(100)
 
 
 def test_metrics_ci_known_rmse():
