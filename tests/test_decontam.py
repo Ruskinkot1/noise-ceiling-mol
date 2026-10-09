@@ -147,3 +147,12 @@ def test_script_end_to_end(tmp_path, monkeypatch, capsys):
     mod_rows = pd.read_csv(tmp_path / "clean/decontam_models.csv").set_index("model")
     assert str(mod_rows.loc["m1", "test_overlap_share"]) == "0.2" and mod_rows.loc["m2", "test_overlap_share"] == "н/д"
     assert not mod_rows.loc["m2", "verified"]
+
+
+def test_pruned_similarity_agrees_above_threshold():
+    qs = [IBU, IBU_ANALOG, NAPH, PARA, CAFF]
+    ref = [IBU, PARA, "CC(=O)Nc1ccc(Cl)cc1", "CCCCCC"]
+    exact = max_similarity(qs, ref)
+    pruned = max_similarity(qs, ref, min_sim=0.6)
+    for e, p in zip(exact, pruned):
+        assert (p == pytest.approx(e)) if e >= 0.6 else (p <= e + 1e-6)
