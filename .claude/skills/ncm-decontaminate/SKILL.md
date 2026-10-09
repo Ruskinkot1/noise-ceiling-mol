@@ -12,4 +12,4 @@ description: Remove molecules and endpoints already present in public benchmarks
 5. Log counts removed at each step and, per model, the share of test molecules overlapping its training set.
 6. Also keep the uncleaned set to measure leakage as the difference in scores.
 
-Pass the registry to the collector with `--exclude`.
+Registry/clean-vs-raw: см. scripts/02b_decontaminate.py (в работе; `--exclude` у коллектора больше нет).
