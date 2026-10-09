@@ -104,15 +104,28 @@ def write_registry(source, smiles, url, out_dir, today, n_jobs):
 
 
 def build_polaris(out_dir, raw_dir, today, n_jobs, status, max_table_mb):
-    try:
-        import polaris as po
-    except Exception as e:  # noqa: BLE001
-        status.append(dict(source="polaris", ok=False, note=f"polaris-lib не установлен ({type(e).__name__})"))
-        return
+    """Каталог метаданных Polaris открыт (GET /api/v1/dataset). Сами таблицы отдаются через storage-токен,
+    для которого polaris-lib требует OAuth-логин (polaris/hub/storage.py, token-exchange) = регистрация -> не качаем,
+    если polaris-lib не установлен или load_dataset падает без логина."""
     try:
         meta = requests.get(POLARIS_API, timeout=60).json()["data"]
     except Exception as e:  # noqa: BLE001
-        status.append(dict(source="polaris", ok=False, note=f"список датасетов недоступен: {e}"))
+        status.append(dict(source="polaris", ok=False, note=f"каталог недоступен: {type(e).__name__}"))
+        return
+    cat = pd.DataFrame([dict(owner=(r.get("owner") or {}).get("slug"), slug=r["slug"], n_rows=r.get("nRows"),
+                             table_bytes=(r.get("tableContent") or {}).get("size"), created=str(r.get("createdAt"))[:10],
+                             year=(r.get("userAttributes") or {}).get("year"), source=r.get("source"),
+                             license=r.get("license"), tags=";".join(r.get("tags") or []),
+                             mol_cols=";".join(k for k, v in (r.get("annotations") or {}).items()
+                                               if v.get("modality") == "MOLECULE")) for r in meta])
+    cat["downloaded"] = today
+    cat.to_csv(out_dir / "_polaris_catalog.csv", index=False)
+    try:
+        import polaris as po
+    except Exception as e:  # noqa: BLE001
+        status.append(dict(source="polaris", ok=False, n_rows=len(cat),
+                           note=f"каталог {len(cat)} датасетов сохранён; таблицы не скачаны: polaris-lib не установлен "
+                                f"({type(e).__name__}) и загрузка требует логин"))
         return
     for r in meta:
         owner = (r.get("owner") or {}).get("slug")
@@ -120,16 +133,13 @@ def build_polaris(out_dir, raw_dir, today, n_jobs, status, max_table_mb):
         size = (r.get("tableContent") or {}).get("size") or 0
         slug = f"{owner}/{r['slug']}"
         if not mol_cols or owner == "tdcommons" or size > max_table_mb * 1e6:
-            # tdcommons-зеркала дублируют TDC (уже в реестре); большие таблицы пропускаем
-            continue
+            continue  # tdcommons-зеркала дублируют TDC; большие таблицы пропускаем
         source = f"polaris_{owner}_{r['slug']}".replace("-", "_")
         try:
             ds = po.load_dataset(slug)
-            col = mol_cols[0]
-            n, nu, nk = write_registry(source, ds.table[col], f"https://polarishub.io/datasets/{slug}",
+            n, nu, nk = write_registry(source, ds.table[mol_cols[0]], f"https://polarishub.io/datasets/{slug}",
                                        out_dir, today, n_jobs)
-            status.append(dict(source=source, ok=True, http=200, bytes=size, n_rows=n, n_unique=nu, n_ik14=nk,
-                               note=f"dataset createdAt={str(r.get('createdAt'))[:10]}"))
+            status.append(dict(source=source, ok=True, http=200, bytes=size, n_rows=n, n_unique=nu, n_ik14=nk))
         except Exception as e:  # noqa: BLE001
             status.append(dict(source=source, ok=False, note=f"{type(e).__name__}: {str(e)[:150]}"))
 
