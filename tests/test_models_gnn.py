@@ -56,3 +56,43 @@ def test_early_stopping_restores_best():
     smi = synth_smiles(60)
     m = DMPNNRegressor(seed=0, hidden=32, max_epochs=40, patience=2).fit(smi, target(smi))
     assert 1 <= m.n_epochs_ <= 40
+
+
+def _load_embed_script():
+    import importlib.util
+    from pathlib import Path
+    p = Path(__file__).resolve().parents[1] / "scripts" / "06_embed_foundation.py"
+    spec = importlib.util.spec_from_file_location("embed06", p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_embed_masked_mean_pooling_offline():
+    """Крошечная случайная RoBERTa + символьный токенайзер: паддинг не должен влиять на эмбеддинг."""
+    torch = pytest.importorskip("torch")
+    from transformers import RobertaConfig, RobertaModel
+    mod = _load_embed_script()
+    torch.manual_seed(0)
+    model = RobertaModel(RobertaConfig(vocab_size=64, hidden_size=16, num_hidden_layers=1, num_attention_heads=2,
+                                       intermediate_size=32, max_position_embeddings=64, pad_token_id=1),
+                         add_pooling_layer=False).eval()
+
+    def tok(batch, return_tensors, padding, truncation, max_length):
+        ids = [[2 + (ord(c) % 60) for c in s][:max_length] for s in batch]
+        L = max(map(len, ids))
+        x = torch.tensor([i + [1] * (L - len(i)) for i in ids])
+        return {"input_ids": x, "attention_mask": (x != 1).long()}
+
+    smi = ["CCO", "c1ccccc1C(=O)O", "CN", "CCN(CC)CC"]
+    E = mod.embed_smiles(smi, tok, model, batch_size=2)
+    alone = np.stack([mod.embed_smiles([s], tok, model, batch_size=1)[0] for s in smi])
+    assert E.shape == (4, 16) and np.allclose(E, alone, atol=1e-5)
+
+
+def test_embed_cache_roundtrip_and_featurize(tmp_path):
+    ids = ["a", "b", "c"]
+    X = np.arange(12, dtype=np.float32).reshape(3, 4)
+    np.savez(tmp_path / "fake-model.npz", mol_ids=np.array(ids, dtype=object), X=X)
+    out = featurize("emb-fake-model_gbm", ["C", "CC", "CCC"], ["c", "a"], emb_dir=str(tmp_path))
+    assert np.array_equal(out, X[[2, 0]])
