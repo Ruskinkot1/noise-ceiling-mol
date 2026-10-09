@@ -113,6 +113,9 @@ def audit_task(task, m: pd.DataFrame, big_delta: float):
         dist.append({"task": task, "kind": "between_docs", **qrow(pr["abs_delta"].to_numpy())})
         if pr["dyear"].nunique() > 1:
             res["spearman_absdelta_vs_dyear"] = float(spearmanr(pr["abs_delta"], pr["dyear"])[0])
+        for tag, mk in (("le3", pr["dyear"] <= 3), ("gt3", pr["dyear"] > 3)):  # sigma по парам: sqrt(mean(Δ²)/2)
+            res[f"sigma_pairs_dyear_{tag}"] = float(np.sqrt((pr.loc[mk, "delta"] ** 2).mean() / 2)) if mk.sum() else np.nan
+            res[f"n_pairs_dyear_{tag}"] = int(mk.sum())
         mean_y = pr[["y_a", "y_b"]].mean(axis=1)
         res["spearman_absdelta_vs_meany"] = float(spearmanr(pr["abs_delta"], mean_y)[0]) if len(pr) > 2 else np.nan
         res["frac_pairs_same_assay_id"] = float((pr["assay_a"] == pr["assay_b"]).mean())

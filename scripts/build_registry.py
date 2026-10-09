@@ -48,7 +48,7 @@ TDC = {  # имя -> dataverse file id (pytdc 1.1.15 tdc/metadata.py, name2id)
     "dili": 4259585, "skin_reaction": 4259609, "ames": 4259564, "carcinogens_lagunin": 4259570,
     "ld50_zhu": 4267146, "hiv": 4259593, "sarscov2_3clpro_diamond": 4259606, "sarscov2_vitro_touret": 4259607,
 }
-SMILES_COLS = ["smiles", "mol", "drug", "canonical_smiles", "mol_smiles", "smiles_text"]
+SMILES_COLS = ["smiles", "mol", "drug", "x", "canonical_smiles", "mol_smiles", "smiles_text"]  # "x": столбец структур в TDC single_pred
 POLARIS_API = "https://polarishub.io/api/v1/dataset"
 
 
@@ -139,6 +139,7 @@ def main():
     ap.add_argument("--out", default=str(ROOT / "data/registry"))
     ap.add_argument("--only", nargs="*", default=None, help="moleculenet tdc polaris")
     ap.add_argument("--n-jobs", type=int, default=4)
+    ap.add_argument("--skip-done", action="store_true", help="не пересобирать источники, у которых уже есть csv.gz")
     ap.add_argument("--polaris-max-mb", type=float, default=30.0)
     a = ap.parse_args()
     out = Path(a.out)
@@ -155,6 +156,8 @@ def main():
     if "tdc" in groups:
         jobs += [(f"tdc_{k}", f"{TDC_BASE}/{v}", raw / f"tdc_{k}.tab") for k, v in TDC.items()]
     for source, url, dest in jobs:
+        if a.skip_done and (out / f"{source}.csv.gz").exists():
+            continue
         code, nbytes, note = fetch(url, dest, session)
         row = dict(source=source, url=url, http=code, bytes=nbytes, ok=False, note=note)
         if code == 200 and dest.exists():
