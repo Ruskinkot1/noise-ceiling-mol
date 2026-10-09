@@ -101,7 +101,7 @@ class DMPNNRegressor:
     """sklearn-подобный регрессор. X — SMILES (список/массив строк)."""
 
     def __init__(self, seed=0, hidden=200, depth=3, dropout=0.1, lr=1e-3, batch_size=64,
-                 max_epochs=60, patience=10, val_frac=0.1, n_threads=None):
+                 max_epochs=60, patience=10, val_frac=0.1, n_threads=1):
         self.seed, self.hidden, self.depth, self.dropout = seed, hidden, depth, dropout
         self.lr, self.batch_size, self.max_epochs, self.patience = lr, batch_size, max_epochs, patience
         self.val_frac, self.n_threads = val_frac, n_threads
