@@ -46,7 +46,8 @@ def make_model(name: str, seed: int, params: dict | None = None):
         from .gnn import DMPNNRegressor
         return DMPNNRegressor(seed=seed, **p)
     if f == "gbm":
-        return HistGradientBoostingRegressor(random_state=seed, **{"max_iter": 300, "learning_rate": 0.05, **p})
+        return HistGradientBoostingRegressor(random_state=seed, early_stopping=True, n_iter_no_change=10, validation_fraction=0.1,
+                                             **{"max_iter": 300, "learning_rate": 0.05, **p})
     if f == "rf":
         return RandomForestRegressor(n_estimators=300, n_jobs=-1, random_state=seed, **p)
     if f == "mlp":

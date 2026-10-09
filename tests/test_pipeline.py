@@ -31,3 +31,13 @@ def test_splits_disjoint_and_complete():
     for f in SPLITS.values():
         tr, te = f(df, 0)
         assert not set(tr) & set(te) and len(tr) + len(te) == len(df) and len(te) > 0
+
+
+def test_bootstrap_matches_point_estimate():
+    from ncmol.ceiling import bootstrap_ceiling
+    d = synth(n=600, sigma=0.5, docs=3)
+    c = estimate_ceiling(d, max_abs_pair_diff=3.0)
+    b = bootstrap_ceiling(d, n_boot=200, max_abs_pair_diff=3.0).iloc[0]
+    assert b.sigma_lo <= c.sigma <= b.sigma_hi
+    assert b.r2_max_lo <= c.r2_max <= b.r2_max_hi
+    assert abs(b.sigma_med - c.sigma) < 0.02
