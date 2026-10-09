@@ -30,7 +30,8 @@ from ncmol import metrics, stats
 from ncmol.models import BASELINE
 
 ROOT = Path(__file__).resolve().parents[1]
-SUMMARY = ["rmse", "r2", "frac_ceiling", "frac_rmse", "frac_r2", "frac_ceiling_true"]
+LOW_HEADROOM = 0.2  # параметр: (RMSE_mean − RMSE_floor)/RMSE_mean < 0.2 -> «доля потолка неустойчива»
+SUMMARY = ["rmse", "r2", "frac_ceiling", "frac_rmse", "frac_r2", "frac_ceiling_true", "headroom"]
 
 
 def add_ceiling(b: pd.DataFrame, c: pd.DataFrame) -> pd.DataFrame:
@@ -44,6 +45,9 @@ def add_ceiling(b: pd.DataFrame, c: pd.DataFrame) -> pd.DataFrame:
     att = [metrics.attenuation_corrected(r, m, f) for r, m, f in zip(b["rmse"], b["rmse_mean"], b["rmse_floor"])]
     b["frac_ceiling_true"] = [a["frac_ceiling_true"] for a in att]
     b["below_floor"] = [a["below_floor"] for a in att]
+    # запас до потолка: если мал, знаменатель доли потолка близок к 0 и она неустойчива
+    b["headroom"] = (b["rmse_mean"] - b["rmse_floor"]) / b["rmse_mean"]
+    b["low_headroom"] = b["headroom"] < LOW_HEADROOM
     for tag in ("lo", "hi"):  # чувствительность к неопределённости sigma (границы бутстрэпа из scripts/03)
         if f"sigma_{tag}" in b.columns:
             fl = b[f"sigma_{tag}"] * np.sqrt(b["test_mean_inv_ndocs"])
@@ -123,7 +127,7 @@ def main():
         d = draws.get((sp, m))
         if d:
             mat = np.vstack(list(d.values()))  # (n_tasks, B): ресэмплинг молекул внутри каждой задачи независим
-            mm = mat.mean(0)
+            mm = np.nanmean(mat, 0)  # ресэмплы с RMSE_mean <= RMSE_floor дают NaN и пропускаются
             row["frac_ceiling_mol_lo"], row["frac_ceiling_mol_hi"] = stats.percentile_ci(mm, a.alpha)
         lb_rows.append(row)
     lb = pd.DataFrame(lb_rows).sort_values(["split", "frac_ceiling"], ascending=[True, False])
@@ -147,7 +151,7 @@ def main():
                "mean_diff_rmse": float(drm.mean()), "wilcoxon_p": w["p"]}
         dd = ddraws.get((sp, m))
         if dd:
-            mat = np.vstack([v[1] for v in dd.values()]).mean(0)
+            mat = np.nanmean(np.vstack([v[1] for v in dd.values()]), 0)
             row["diff_mol_lo"], row["diff_mol_hi"] = stats.percentile_ci(mat, a.alpha)
             row["inside_noise_mol"] = bool(row["diff_mol_lo"] <= 0 <= row["diff_mol_hi"])
         prow.append(row)

@@ -75,28 +75,43 @@ def fingerprints(smiles_list):
 
 
 def _max_sim_chunk(args):
-    q_fps, ref_fps = args
+    q_fps, ref_fps, ref_counts, min_sim = args
     out = np.zeros(len(q_fps), dtype=np.float32)
     for i, q in enumerate(q_fps):
-        if q.GetNumOnBits() == 0:
+        a = q.GetNumOnBits()
+        if a == 0:
             continue
-        out[i] = max(DataStructs.BulkTanimotoSimilarity(q, ref_fps), default=0.0)
+        if min_sim:
+            # Tanimoto <= min(a,b)/max(a,b): ref с числом бит вне [min_sim*a, a/min_sim] не могут дать sim >= min_sim
+            lo = np.searchsorted(ref_counts, np.ceil(min_sim * a - 1e-9), side="left")
+            hi = np.searchsorted(ref_counts, np.floor(a / min_sim + 1e-9), side="right")
+            window = ref_fps[lo:hi]
+        else:
+            window = ref_fps
+        if len(window):
+            out[i] = max(DataStructs.BulkTanimotoSimilarity(q, window))
     return out
 
 
-def max_similarity(query_smiles, ref_smiles, n_jobs: int = 1) -> np.ndarray:
-    """Максимум Tanimoto(ECFP4) каждого запроса к набору ref. Пустой ref -> нули."""
+def max_similarity(query_smiles, ref_smiles, n_jobs: int = 1, min_sim: float | None = None) -> np.ndarray:
+    """Максимум Tanimoto(ECFP4) каждого запроса к набору ref. Пустой ref -> нули.
+    min_sim=None: точные значения. min_sim=t: значения >= t точны, остальные — нижняя оценка (часть ref отсечена по
+    числу бит), достаточно для проверки «> порога»."""
     query_smiles, ref_smiles = list(query_smiles), list(ref_smiles)
     if not query_smiles or not ref_smiles:
         return np.zeros(len(query_smiles), dtype=np.float32)
     ref = fingerprints(ref_smiles)
+    counts = np.array([f.GetNumOnBits() for f in ref])
+    order = np.argsort(counts, kind="stable")
+    ref = [ref[i] for i in order]
+    counts = counts[order]
     q = fingerprints(query_smiles)
     if n_jobs > 1 and len(q) > 200:
         from multiprocessing import Pool
-        chunks = [(q[i:i + 200], ref) for i in range(0, len(q), 200)]
+        chunks = [(q[i:i + 200], ref, counts, min_sim) for i in range(0, len(q), 200)]
         with Pool(n_jobs) as p:
             return np.concatenate(p.map(_max_sim_chunk, chunks))
-    return _max_sim_chunk((q, ref))
+    return _max_sim_chunk((q, ref, counts, min_sim))
 
 
 # ---------------------------------------------------------------- отсечки моделей
@@ -149,10 +164,12 @@ def aggregate_molecules(meas: pd.DataFrame) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------- шаги очистки
-def annotate(mols: pd.DataFrame, registry: pd.DataFrame, threshold: float = 0.8, n_jobs: int = 1) -> pd.DataFrame:
+def annotate(mols: pd.DataFrame, registry: pd.DataFrame, threshold: float = 0.8, n_jobs: int = 1,
+             exact_sim: bool = False) -> pd.DataFrame:
     """Для уникальных молекул (колонки mol_id, smiles) считает флаги относительно реестра.
     Индекс результата = mol_id. Колонки: ik14, ikfull, exact14, exact_full, exact_sources, max_sim, near.
-    max_sim = 1.0 для точных совпадений; для остальных максимум Tanimoto ECFP4 к реестру."""
+    max_sim = 1.0 для точных совпадений; для остальных максимум Tanimoto ECFP4 к реестру.
+    exact_sim=False: значения ниже порога — нижняя оценка (отсечение по числу бит), быстрее; True — точные (для пилота)."""
     mols = mols.drop_duplicates("mol_id").reset_index(drop=True)
     st = standardize_table_idx(mols["smiles"])
     out = pd.DataFrame({"mol_id": mols["mol_id"], "smiles": mols["smiles"],
@@ -170,7 +187,8 @@ def annotate(mols: pd.DataFrame, registry: pd.DataFrame, threshold: float = 0.8,
     todo = np.where(~out["exact14"].values)[0]
     if len(todo) and not registry.empty:
         ref = registry.drop_duplicates("inchikey14")["smiles"]
-        out.loc[out.index[todo], "max_sim"] = max_similarity(out["smiles"].values[todo], ref, n_jobs=n_jobs)
+        out.loc[out.index[todo], "max_sim"] = max_similarity(out["smiles"].values[todo], ref, n_jobs=n_jobs,
+                                                          min_sim=None if exact_sim else threshold)
     out["near"] = (out["max_sim"] > threshold) & ~out["exact14"]
     return out.set_index("mol_id")
 

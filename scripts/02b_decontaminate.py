@@ -80,6 +80,7 @@ def main():
     ap.add_argument("--endpoints", default=str(ROOT / "configs/endpoints.yaml"))
     ap.add_argument("--n-jobs", type=int, default=4)
     ap.add_argument("--pilot", action="store_true")
+    ap.add_argument("--pilot-n", type=int, default=5000, help="размер выборки молекул для пилота")
     a = ap.parse_args()
 
     proc = Path(a.processed)
@@ -93,10 +94,13 @@ def main():
         return 1
     print(f"реестр: {len(reg)} строк, источников {reg['source'].nunique()}, ik14 уникальных {reg['inchikey14'].nunique()}")
     uniq = unique_molecules(tasks)
-    info = annotate(uniq, reg, a.threshold, a.n_jobs)
     if a.pilot:
-        pilot(info, a.threshold)
+        if len(uniq) > a.pilot_n:  # полный перебор дорог: распределение оцениваем по случайной выборке
+            uniq = uniq.sample(a.pilot_n, random_state=0).reset_index(drop=True)
+            print(f"пилот на случайной выборке {a.pilot_n} молекул (seed 0)")
+        pilot(annotate(uniq, reg, a.threshold, a.n_jobs, exact_sim=True), a.threshold)
         return 0
+    info = annotate(uniq, reg, a.threshold, a.n_jobs)
 
     cuts = load_cutoffs(a.cutoffs)
     names = a.models or list(cuts)
