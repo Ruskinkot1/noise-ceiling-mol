@@ -203,3 +203,14 @@ def test_tune_and_fit_equal_budget():
     assert "alpha" in cfg and m.predict(X).shape == (120,)
     m0, cfg0 = tune_and_fit("ecfp_ridge", X, y, 0, n_trials=0)
     assert cfg0 == {}
+
+
+def test_every_family_builds_and_fits_with_every_grid_config():
+    import numpy as np
+    from ncmol.models import PARAM_GRID, make_model, sample_configs
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(60, 6)); y = X[:, 0] + rng.normal(0, .1, 60)
+    for name in ("ecfp_gbm", "ecfp_rf", "ecfp_mlp", "ecfp_ridge"):
+        for c in sample_configs(name, 3, 0):
+            assert make_model(name, 0, c).fit(X, y).predict(X).shape == (60,)
+    assert set(PARAM_GRID) == {"gbm", "rf", "mlp", "ridge", "gnn"}
