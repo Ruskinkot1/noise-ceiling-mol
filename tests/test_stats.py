@@ -190,3 +190,16 @@ def test_p_noise_exceeds():
     # sigma=1, n=1 обоим: sd разности = sqrt2; P(|N|>=1.96*sqrt2) = 0.05
     assert stats.p_noise_exceeds(1.96 * np.sqrt(2), 1.0) == pytest.approx(0.05, abs=1e-3)
     assert stats.p_noise_exceeds(2.0, 0.5, 4, 4) < stats.p_noise_exceeds(2.0, 0.5, 1, 1)
+
+
+def test_tune_and_fit_equal_budget():
+    import numpy as np
+    from ncmol.models import sample_configs, tune_and_fit
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(120, 8)); y = X[:, 0] * 2 + rng.normal(0, .1, 120)
+    for name in ("ecfp_gbm", "ecfp_rf", "ecfp_ridge"):
+        assert len(sample_configs(name, 4, 0)) == 4
+    m, cfg = tune_and_fit("ecfp_ridge", X, y, 0, n_trials=4)
+    assert "alpha" in cfg and m.predict(X).shape == (120,)
+    m0, cfg0 = tune_and_fit("ecfp_ridge", X, y, 0, n_trials=0)
+    assert cfg0 == {}
