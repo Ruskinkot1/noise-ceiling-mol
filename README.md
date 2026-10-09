@@ -59,3 +59,9 @@ python scripts/05_fraction_of_ceiling.py
 ## Project skills
 
 Claude skills for this project live in `.claude/skills/` (`ncm-researcher`, `ncm-novelty-check`, `ncm-collect-replicates`, `ncm-decontaminate`, `ncm-benchmark-models`, `ncm-ceiling-metric`). Sprint notes: `docs/sprint-40min.md`. 
+
+
+## Запуск на Colab
+Ноутбук [notebooks/run_on_colab.ipynb](notebooks/run_on_colab.ipynb) проходит весь конвейер (данные → очистка → потолок → модели → доля потолка).
+Открыть: https://colab.research.google.com/github/Ruskinkot1/noise-ceiling-mol/blob/cloud-data/notebooks/run_on_colab.ipynb
+**Не проверено на Colab.** Всё считается на CPU (GPU не используется), полный пилот занимает часы. Если репозиторий приватный, в ячейке клонирования нужен токен GitHub.
