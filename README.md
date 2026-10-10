@@ -83,3 +83,12 @@ scripts/run_pilot.sh                # можно прерывать и запу�
 для пилота — переменной `DEVICE`: `DEVICE=mps NJOBS=1 scripts/run_pilot.sh`. На Mac с Apple Silicon: `--device mps` (если какая-то операция не поддержана, задайте `PYTORCH_ENABLE_MPS_FALLBACK=1`).
 **MPS не проверялся** (на этой машине его нет, проверены только cpu и auto→cpu). Ускоряются эмбеддинги и GNN; sklearn-модели (GBM/RF/MLP) всегда на CPU.
 Если `pip install rdkit` не находит колёса для вашей версии Python, возьмите Python 3.11–3.12.
+
+## Одной командой
+```bash
+git clone -b cloud-data https://github.com/Ruskinkot1/noise-ceiling-mol.git && cd noise-ceiling-mol
+python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && pip install -e .
+DEVICE=cpu bash scripts/run_all.sh          # Mac Apple Silicon: DEVICE=mps NJOBS=1 bash scripts/run_all.sh
+```
+`scripts/run_all.sh` проходит тесты → выгрузку ChEMBL → очистку → пилот → потолок → модели → доля потолка → разрезы. Готовые этапы пропускаются (`FORCE=1` пересчитывает).
+Полностью `run_all.sh` целиком я не гонял одним запуском: этапы проверялись по отдельности.
