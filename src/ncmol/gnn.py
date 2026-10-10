@@ -13,6 +13,8 @@ import torch
 from rdkit import Chem, RDLogger
 from torch import nn
 
+from .device import resolve_device
+
 RDLogger.DisableLog("rdApp.*")
 
 _ELEMS = [6, 7, 8, 9, 15, 16, 17, 35, 53, 5, 14, 34]  # остальные -> "other"
@@ -71,6 +73,10 @@ def collate(graphs):
             torch.from_numpy(cat(attr)), torch.from_numpy(cat(rev)), torch.from_numpy(cat(batch)), len(graphs))
 
 
+def _to(batch, dev):
+    return tuple(t.to(dev) if torch.is_tensor(t) else t for t in batch)
+
+
 class DMPNN(nn.Module):
     def __init__(self, hidden=200, depth=3, dropout=0.1, ffn_hidden=200):
         super().__init__()
@@ -101,11 +107,15 @@ class DMPNNRegressor:
     """sklearn-подобный регрессор. X — SMILES (список/массив строк)."""
 
     def __init__(self, seed=0, hidden=200, depth=3, dropout=0.1, lr=1e-3, batch_size=64,
-                 max_epochs=60, patience=10, val_frac=0.1, n_threads=1):
+                 max_epochs=60, patience=10, val_frac=0.1, n_threads=1, device=None):
         self.seed, self.hidden, self.depth, self.dropout = seed, hidden, depth, dropout
         self.lr, self.batch_size, self.max_epochs, self.patience = lr, batch_size, max_epochs, patience
         self.val_frac, self.n_threads = val_frac, n_threads
+        self.device = device  # None -> NCMOL_DEVICE или cpu; см. ncmol.device
         self.n_epochs_ = None
+
+    def _dev(self):
+        return resolve_device(self.device)
 
     def _graphs(self, X):
         return [mol_graph(s) for s in np.asarray(X, dtype=object).ravel()]
@@ -115,7 +125,7 @@ class DMPNNRegressor:
         out = []
         with torch.no_grad():
             for i in range(0, len(graphs), bs):
-                out.append(self.net_(*collate(graphs[i:i + bs])).numpy())
+                out.append(self.net_(*_to(collate(graphs[i:i + bs]), self._dev())).cpu().numpy())
         return np.concatenate(out) * self.y_std_ + self.y_mean_ if out else np.zeros(0)
 
     def fit(self, X, y):
@@ -131,7 +141,8 @@ class DMPNNRegressor:
         va, tr = perm[:n_val], perm[n_val:]
         self.y_mean_, self.y_std_ = float(y[tr].mean()), float(y[tr].std()) or 1.0
         yt = ((y - self.y_mean_) / self.y_std_).astype(np.float32)
-        self.net_ = DMPNN(self.hidden, self.depth, self.dropout)
+        dev = self._dev()
+        self.net_ = DMPNN(self.hidden, self.depth, self.dropout).to(dev)
         opt = torch.optim.Adam(self.net_.parameters(), lr=self.lr)
         best, best_state, bad = np.inf, None, 0
         for ep in range(self.max_epochs):
@@ -141,13 +152,13 @@ class DMPNNRegressor:
                 idx = order[i:i + self.batch_size]
                 if len(idx) < 2:
                     continue  # BatchNorm нет, но шаг по одному примеру шумен
-                loss = nn.functional.mse_loss(self.net_(*collate([graphs[j] for j in idx])),
-                                              torch.from_numpy(yt[idx]))
+                loss = nn.functional.mse_loss(self.net_(*_to(collate([graphs[j] for j in idx]), dev)),
+                                              torch.from_numpy(yt[idx]).to(dev))
                 opt.zero_grad(); loss.backward(); opt.step()
             if n_val:
                 self.net_.eval()
                 with torch.no_grad():
-                    pv = np.concatenate([self.net_(*collate([graphs[j] for j in va[k:k + 256]])).numpy()
+                    pv = np.concatenate([self.net_(*_to(collate([graphs[j] for j in va[k:k + 256]]), dev)).cpu().numpy()
                                          for k in range(0, n_val, 256)])
                 score = float(np.mean((pv - yt[va]) ** 2))
                 if score < best - 1e-6:

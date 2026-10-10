@@ -96,3 +96,25 @@ def test_embed_cache_roundtrip_and_featurize(tmp_path):
     np.savez(tmp_path / "fake-model.npz", mol_ids=np.array(ids, dtype=object), X=X)
     out = featurize("emb-fake-model_gbm", ["C", "CC", "CCC"], ["c", "a"], emb_dir=str(tmp_path))
     assert np.array_equal(out, X[[2, 0]])
+
+
+def test_resolve_device():
+    import pytest
+    from ncmol.device import resolve_device
+    assert resolve_device("cpu").type == "cpu"
+    assert resolve_device("auto").type in ("cpu", "cuda", "mps")
+    with pytest.raises(ValueError):
+        resolve_device("tpu")
+    import torch
+    if not (hasattr(torch.backends, "mps") and torch.backends.mps.is_available()):
+        with pytest.raises(RuntimeError):
+            resolve_device("mps")
+
+
+def test_gnn_accepts_device_cpu():
+    import numpy as np
+    from ncmol.gnn import DMPNNRegressor
+    smi = ["CCO", "CCN", "c1ccccc1", "CCC(=O)O", "CC(C)O", "c1ccncc1"] * 5
+    y = np.arange(len(smi), dtype=float) % 5
+    m = DMPNNRegressor(seed=0, max_epochs=2, device="cpu").fit(smi, y)
+    assert m.predict(smi).shape == (len(smi),)
