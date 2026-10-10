@@ -79,4 +79,7 @@ python scripts/build_registry.py && python scripts/02b_decontaminate.py --no-yea
 python scripts/make_pilot.py && python scripts/06_embed_foundation.py --processed data/pilot_raw --out-dir data/pilot_emb --models chemberta-77m-mlm molformer-xl-10pct
 scripts/run_pilot.sh                # можно прерывать и запускать снова: готовые задания пропускаются
 ```
-Всё считается на CPU (GPU/MPS не используется). Если `pip install rdkit` не находит колёса для вашей версии Python, возьмите Python 3.11–3.12.
+Устройство для torch выбирается аргументом `--device {cpu,mps,cuda,auto}` (по умолчанию `cpu`) у `scripts/06_embed_foundation.py` и `scripts/04_run_benchmark.py`,
+для пилота — переменной `DEVICE`: `DEVICE=mps NJOBS=1 scripts/run_pilot.sh`. На Mac с Apple Silicon: `--device mps` (если какая-то операция не поддержана, задайте `PYTORCH_ENABLE_MPS_FALLBACK=1`).
+**MPS не проверялся** (на этой машине его нет, проверены только cpu и auto→cpu). Ускоряются эмбеддинги и GNN; sklearn-модели (GBM/RF/MLP) всегда на CPU.
+Если `pip install rdkit` не находит колёса для вашей версии Python, возьмите Python 3.11–3.12.

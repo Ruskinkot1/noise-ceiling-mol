@@ -15,6 +15,8 @@ import pandas as pd
 import torch
 from rdkit import Chem, RDLogger
 
+from ncmol.device import resolve_device
+
 RDLogger.DisableLog("rdApp.*")
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -44,7 +46,7 @@ def canonical(smiles):
 
 
 @torch.no_grad()
-def embed_smiles(smiles, tok, model, batch_size=32, max_length=256):
+def embed_smiles(smiles, tok, model, batch_size=32, max_length=256, device=None):
     """smiles: список валидных канонических SMILES -> (n, d) float32. mean-pooling по last_hidden_state с маской.
     Батчи по возрастанию длины (меньше паддинга), порядок результата сохраняется."""
     order = np.argsort([len(s) for s in smiles], kind="stable")
@@ -54,9 +56,11 @@ def embed_smiles(smiles, tok, model, batch_size=32, max_length=256):
         enc = tok([smiles[j] for j in idx], return_tensors="pt", padding=True, truncation=True,
                   max_length=max_length)
         enc.pop("token_type_ids", None)
+        if device is not None:
+            enc = {k: v.to(device) for k, v in enc.items()}
         h = model(**enc).last_hidden_state
         mask = enc["attention_mask"].unsqueeze(-1).to(h.dtype)
-        e = ((h * mask).sum(1) / mask.sum(1).clamp(min=1)).float().numpy()
+        e = ((h * mask).sum(1) / mask.sum(1).clamp(min=1)).float().cpu().numpy()
         for k, j in enumerate(idx):
             out[j] = e[k]
     return np.stack(out) if out else np.zeros((0, 0), np.float32)
@@ -82,11 +86,13 @@ def run_model(name, mol_ids, smiles, a):
             return
     t0 = time.time()
     tok, model = load_model(spec)
+    dev = resolve_device(a.device)
+    model = model.to(dev)
     can = [canonical(s) for s in smiles]
     ok = np.array([c is not None for c in can])
     X = None
     if ok.any():
-        E = embed_smiles([c for c in can if c is not None], tok, model, a.batch_size, a.max_length)
+        E = embed_smiles([c for c in can if c is not None], tok, model, a.batch_size, a.max_length, dev)
         X = np.zeros((len(can), E.shape[1]), np.float32)
         X[ok] = E
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -104,6 +110,8 @@ def main():
     ap.add_argument("--max-length", type=int, default=256)
     ap.add_argument("--smoke", type=int, default=0, help="взять только первые N молекул (проверка работоспособности)")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--device", default="cpu", choices=["cpu", "mps", "cuda", "auto"],
+                    help="устройство torch: cpu (по умолчанию), mps (Mac Apple Silicon), cuda, auto")
     a = ap.parse_args()
     torch.set_num_threads(4)
     paths = sorted(glob.glob(str(Path(a.processed) / "*.molecules.csv")))

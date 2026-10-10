@@ -2,6 +2,7 @@
 """Шаг 4. Модели x сплиты x сиды. Выход: results/benchmark.csv (одна строка = задача/сплит/сид/модель).
 Эмбеддинги: --models ecfp_gbm emb-<name>_gbm --emb-dir data/embeddings (файл <name>.npz: mol_ids, X)."""
 import argparse
+import os
 from pathlib import Path
 
 import numpy as np
@@ -23,9 +24,12 @@ def main():
     ap.add_argument("--seeds", type=int, default=5)
     ap.add_argument("--emb-dir", default=str(ROOT / "data/embeddings"))
     ap.add_argument("--tasks", nargs="*")
+    ap.add_argument("--device", default="cpu", choices=["cpu", "mps", "cuda", "auto"],
+                    help="устройство torch для GNN (cpu по умолчанию; mps — Mac Apple Silicon). sklearn-модели всегда на CPU")
     ap.add_argument("--n-trials", type=int, default=6, help="одинаковый бюджет подбора на модель; 0 = без подбора")
     ap.add_argument("--pred-out", default=str(ROOT / "results/predictions.csv"))
     a = ap.parse_args()
+    os.environ["NCMOL_DEVICE"] = a.device
     tasks = pd.read_csv(Path(a.processed) / "tasks.csv")
     names = a.tasks or tasks[tasks["passes"]]["task"].tolist()
     rows, preds = [], []
