@@ -65,3 +65,18 @@ Claude skills for this project live in `.claude/skills/` (`ncm-researcher`, `ncm
 Ноутбук [notebooks/run_on_colab.ipynb](notebooks/run_on_colab.ipynb) проходит весь конвейер (данные → очистка → потолок → модели → доля потолка).
 Открыть: https://colab.research.google.com/github/Ruskinkot1/noise-ceiling-mol/blob/cloud-data/notebooks/run_on_colab.ipynb
 **Не проверено на Colab.** Всё считается на CPU (GPU не используется), полный пилот занимает часы. Если репозиторий приватный, в ячейке клонирования нужен токен GitHub.
+
+## Запуск на Mac (локально)
+Не проверено на macOS (разрабатывалось на Linux). Нужны Python 3.10–3.13 и около 3 ГБ свободного места (данные ~0,5 ГБ, кэш моделей HF ~0,6 ГБ).
+```bash
+git clone -b cloud-data https://github.com/Ruskinkot1/noise-ceiling-mol.git && cd noise-ceiling-mol
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt && pip install -e .
+export OMP_NUM_THREADS=1            # иначе sklearn GBM бывает в сотни раз медленнее при параллельных процессах
+python -m pytest -q
+python scripts/01_extract_chembl.py && python scripts/02_standardize.py
+python scripts/build_registry.py && python scripts/02b_decontaminate.py --no-year --n-jobs 4
+python scripts/make_pilot.py && python scripts/06_embed_foundation.py --processed data/pilot_raw --out-dir data/pilot_emb --models chemberta-77m-mlm molformer-xl-10pct
+scripts/run_pilot.sh                # можно прерывать и запускать снова: готовые задания пропускаются
+```
+Всё считается на CPU (GPU/MPS не используется). Если `pip install rdkit` не находит колёса для вашей версии Python, возьмите Python 3.11–3.12.
