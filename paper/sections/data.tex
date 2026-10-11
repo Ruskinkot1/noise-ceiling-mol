@@ -1,6 +1,6 @@
 \section{Data}
 \paragraph{Source and version.}
-Data come from ChEMBL~\cite{TODO-chembl} via its REST API (\texttt{scripts/01\_extract\_chembl.py}). Release and download date: \tbd{} (the latest release visible on the ChEMBL FTP README at the time of writing was chembl\_37, dated 01/05/2026; the release actually used is not yet fixed). Targets: candidate list in \texttt{configs/endpoints.yaml}; ChEMBL target IDs there were entered from memory and are \emph{not verified}.
+Data come from ChEMBL~\cite{zdrazil2023chembl} via its REST API (\texttt{scripts/01\_extract\_chembl.py}). Release and download date: \tbd{} (the latest release visible on the ChEMBL FTP README at the time of writing was chembl\_37, dated 01/05/2026; the release actually used is not yet fixed). Targets: candidate list in \texttt{configs/endpoints.yaml}; ChEMBL target IDs there were entered from memory and are \emph{not verified}.
 
 \paragraph{Filters.}
 \todo{fill from final config: standard type in \{Ki, IC50\}, relation `=', units nM, pChEMBL value present, assay confidence, validity flags, molecule standardisation with RDKit}. We aggregate to one value per (molecule, document) by averaging within a document, so that replicates are \emph{between-document}. A task is a (target, measurement type) pair; $\mathrm{IC}_{50}$ and $K_i$ are never pooled. A task is kept if it has enough replicated molecules (threshold \tbd{}); the project requires at least 15 tasks, otherwise the claim is narrowed. Number of tasks passing: \tbd{}.
