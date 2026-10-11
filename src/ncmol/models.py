@@ -49,7 +49,7 @@ def make_model(name: str, seed: int, params: dict | None = None):
         return HistGradientBoostingRegressor(random_state=seed, early_stopping=True, n_iter_no_change=10, validation_fraction=0.1,
                                              **{"max_iter": 300, "learning_rate": 0.05, **p})
     if f == "rf":
-        return RandomForestRegressor(n_estimators=300, n_jobs=-1, random_state=seed, **p)
+        return RandomForestRegressor(n_estimators=300, n_jobs=1, random_state=seed, **p)
     if f == "mlp":
         return make_pipeline(StandardScaler(), MLPRegressor(
             hidden_layer_sizes=tuple(p.get("hidden", (512, 128))), alpha=p.get("alpha", 1e-3), learning_rate_init=p.get("lr", 1e-3),
