@@ -92,7 +92,21 @@ def run_model(name, mol_ids, smiles, a):
     ok = np.array([c is not None for c in can])
     X = None
     if ok.any():
-        E = embed_smiles([c for c in can if c is not None], tok, model, a.batch_size, a.max_length, dev)
+        # возобновляемость: считаем кусками по --chunk молекул, каждый кусок сохраняется в <out-dir>/_chunks/<модель>/
+        valid = [c for c in can if c is not None]
+        cdir = Path(a.out_dir) / "_chunks" / f"{name}_{spec['rev'][:8]}_{a.max_length}"
+        cdir.mkdir(parents=True, exist_ok=True)
+        parts = []
+        for ci, st in enumerate(range(0, len(valid), a.chunk)):
+            cf = cdir / f"{ci:05d}_{len(valid)}.npy"
+            if cf.exists():
+                parts.append(np.load(cf))
+                continue
+            part = embed_smiles(valid[st:st + a.chunk], tok, model, a.batch_size, a.max_length, dev)
+            np.save(cf, part)
+            parts.append(part)
+            print(f"[{name}] {min(st + a.chunk, len(valid))}/{len(valid)}", flush=True)
+        E = np.concatenate(parts)
         X = np.zeros((len(can), E.shape[1]), np.float32)
         X[ok] = E
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -110,6 +124,7 @@ def main():
     ap.add_argument("--max-length", type=int, default=256)
     ap.add_argument("--smoke", type=int, default=0, help="взять только первые N молекул (проверка работоспособности)")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--chunk", type=int, default=2000, help="молекул в одном сохраняемом куске (возобновляемость)")
     ap.add_argument("--device", default="cpu", choices=["cpu", "mps", "cuda", "auto"],
                     help="устройство torch: cpu (по умолчанию), mps (Mac Apple Silicon), cuda, auto")
     a = ap.parse_args()
