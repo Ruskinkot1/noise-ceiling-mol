@@ -5,8 +5,9 @@ import pandas as pd
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--tasks", nargs="+", default=["CHEMBL237_IC50", "CHEMBL206_IC50", "CHEMBL204_Ki"])
+ap.add_argument("--prefix", default="pilot", help="data/<prefix>_raw и data/<prefix>_clean")
 a = ap.parse_args()
-for name, src in [("pilot_raw", "data/processed"), ("pilot_clean", "data/processed_clean")]:
+for name, src in [(f"{a.prefix}_raw", "data/processed"), (f"{a.prefix}_clean", "data/processed_clean")]:
     d = f"data/{name}"
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)

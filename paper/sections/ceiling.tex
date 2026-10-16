@@ -1,23 +1,29 @@
-\section{Noise ceiling}
+\section{Noise ceiling}\label{sec:ceiling}
 \paragraph{Model.}
-For molecule $i$ and document $j$, $y_{ij}=t_i+e_{ij}$ with $\E e_{ij}=0$, $\Var e_{ij}=s^2$, where $t_i$ is the true value and $e_{ij}$ collects all between-document variation. Values within one document are averaged first. With $n_i$ documents for molecule $i$ and $\bar y_i$ their mean, the pooled within-molecule variance over molecules with $n_i\ge 2$ is
+For molecule $i$ and document $j$ we write $y_{ij}=t_i+e_{ij}$ with $\E e_{ij}=0$ and $\Var e_{ij}=s^2$, where $t_i$ is the value the molecule would have in an idealised common assay and $e_{ij}$ collects all between-document variation (laboratory, protocol, reagents, curation and recording errors). Values within a document are averaged first. With $n_i$ documents for molecule $i$ and mean $\bar y_i$, the pooled within-molecule variance over molecules with $n_i\ge 2$ is
 \begin{equation}
 \hat s^2=\frac{\sum_i\sum_{j}(y_{ij}-\bar y_i)^2}{\sum_i (n_i-1)} .
 \end{equation}
+This is the standard pooled estimator used in earlier analyses of public potency data~\cite{kramer2012experimental,kalliokoski2013comparability}. Molecules whose document values span more than 3 pChEMBL units are excluded from the estimate as likely unit or recording errors (they remain in the training and test sets with their averaged labels).
+
 \paragraph{Floors.}
-If the modelled label is the mean over documents, its noise variance is $s^2/n_i$, so over a set of molecules
-\begin{align}
-\mathrm{RMSE}_{\mathrm{floor}}&=\sqrt{\hat s^2\,\overline{(1/n_i)}}, &
-R^2_{\max}&=1-\frac{\hat s^2\,\overline{(1/n_i)}}{\Var(y)}, &
-\mathrm{MAE}_{\mathrm{floor}}&=\mathrm{RMSE}_{\mathrm{floor}}\sqrt{2/\pi},
-\end{align}
-the last assuming Gaussian noise; $R^2_{\max}$ is clipped to $[0,1]$. For evaluation the factor $\overline{(1/n_i)}$ is computed over the \emph{test} molecules.
+The label of molecule $i$ is $\bar y_i$, whose noise variance is $s^2/n_i$. For a set of test molecules,
+\begin{equation}
+\mathrm{RMSE}_{\mathrm{floor}}=\sqrt{\hat s^2\,\overline{(1/n_i)}},\qquad
+R^2_{\max}=1-\frac{\hat s^2\,\overline{(1/n_i)}}{\Var(y)},
+\end{equation}
+where the average of $1/n_i$ is taken over the test molecules of each split. If $e_{ij}$ is independent of everything a model can learn, a model that predicted every $t_i$ exactly would still have an expected test RMSE of $\mathrm{RMSE}_{\mathrm{floor}}$, and no model can be below it in expectation~\cite{kolmar2021noise}.
+
 \paragraph{Fraction of ceiling.}
-Primary:
 \begin{equation}
 f=\frac{\mathrm{RMSE}_{\text{mean}}-\mathrm{RMSE}_{\text{model}}}{\mathrm{RMSE}_{\text{mean}}-\mathrm{RMSE}_{\mathrm{floor}}},
 \end{equation}
-where $\mathrm{RMSE}_{\text{mean}}$ is that of predicting the training mean on the same test set. $f=0$: no better than the mean; $f=1$: at the noise floor; $f>1$: suspected noise fitting or leakage; $f<0$: worse than the mean. Auxiliary (tables only): $f_{\mathrm{rmse}}=\mathrm{RMSE}_{\mathrm{floor}}/\mathrm{RMSE}$ and $f_{R^2}=R^2/R^2_{\max}$. Since test labels are noisy, a correction for attenuation is \tbd{}.
-\paragraph{Uncertainty and robustness.}
-Cluster bootstrap over molecules (percentile 95\% intervals for $\hat s$, floor, $R^2_{\max}$); sensitivity to the minimum number of documents ($2,3$) and to trimming pairs with $|\Delta|$ above $\{\infty,3,2,1\}$ pChEMBL units (guarding against unit-recording errors). Implemented in \texttt{src/ncmol/ceiling.py}; checked only on synthetic data (recovered $\hat\sigma=0.42$ for true $0.4$).
-\paragraph{Assumptions.} See Section~\ref{sec:limits}.
+where $\mathrm{RMSE}_{\text{mean}}$ is the RMSE of predicting the training-set mean on the same test set. $f=0$ means no better than the mean, $f=1$ means at the noise floor, $f<0$ worse than the mean. Values $f>1$ mean that the floor overstates the noise that matters for this test set, or that there is leakage; they must be investigated rather than reported as success. The aim of $f$ is to put tasks with different noise levels on one scale, but it inherits the uncertainty of the floor and amplifies it when the headroom $\mathrm{RMSE}_{\text{mean}}-\mathrm{RMSE}_{\mathrm{floor}}$ is small, which is the case for the tasks with the largest floors. We therefore report medians and per-task values next to means, and the range of mean $f$ when the floor is computed at the ends of the confidence interval of $\hat s$.
+
+\paragraph{Uncertainty.}
+We report two bootstraps (1{,}000 resamples, percentile 95\% intervals). The first resamples molecules; it treats every replicated molecule as independent. The second resamples \emph{document pairs}: a systematic offset between two documents is shared by all molecules they have in common, so the document pair, not the molecule, is the independent unit. For the second we use the pairwise form $\hat s^2=\sum \Delta^2/2 \,/\, N_{\text{pairs}}$ over all between-document differences $\Delta$, which equals the pooled estimator when every molecule has two documents. We also report, per task, the number of distinct document pairs and the share of molecule pairs contributed by the most frequent one.
+
+\paragraph{Sensitivity analyses.}
+(i) Trimming threshold ($\infty$, 3, 2, 1 pChEMBL units). Lower thresholds remove more genuine disagreement and make the floor smaller, so models look further from it; a higher threshold keeps gross recording errors and makes the floor larger. Over the 17 tasks the median $\hat s$ is 0.61 without trimming, 0.53 with the default threshold of 3, 0.41 with 2 and 0.29 with 1 log unit. The 3-unit rule removes at most 2.5\% of replicated molecules per task, except for CHEMBL206 ($\mathrm{IC}_{50}$, 19\%). (ii) Requiring $\ge3$ documents leaves a median of only 15 replicated molecules per task (minimum 3) and is not used. (iii) Identical values reported by different documents, which are likely re-publications of one measurement~\cite{kramer2012experimental}, counted once. (iv) Molecules defined by the full stereo-aware SMILES instead of the InChIKey connectivity block. (v) Only the largest assay of each document. Results are in Table~\ref{tab:robust}.
+
+\paragraph{Validation.} On one synthetic data set the estimator recovers the true value ($\hat s=0.42$ for $s=0.40$). This is a sanity check, not a study of bias and coverage under heteroscedastic noise or document-level offsets, which remains to be done.

@@ -7,3 +7,5 @@ data/*
 results/
 *.sqlite
 *.db
+*.log
+paper/main.pdf

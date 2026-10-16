@@ -25,9 +25,10 @@ MODELS = {
     "chemberta-77m-mlm": dict(repo="DeepChem/ChemBERTa-77M-MLM", rev="ed8a5374f2024ec8da53760af91a33fb8f6a15ff"),
     "chemberta-77m-mtr": dict(repo="DeepChem/ChemBERTa-77M-MTR", rev="66b895cab8adebea0cb59a8effa66b2020f204ca"),
     "chemberta-5m-mlm": dict(repo="DeepChem/ChemBERTa-5M-MLM", rev="695672a601a8077ace5d0a6fc2529e93cc9cfa9c"),
+    # ревизия 7b12d94 (2024-03) вместо последней: новый код требует transformers>=4.53 (masking_utils), а тут 4.51; код старой ревизии просмотрен — только torch/transformers
     # код модели (modeling_molformer.py, configuration_molformer.py) прочитан перед запуском: только torch/transformers
     "molformer-xl-10pct": dict(repo="ibm-research/MoLFormer-XL-both-10pct",
-                               rev="361063d0ad524ef77cf39b08469f6be770dc550f", remote=True),
+                               rev="7b12d946c181a37f6012b9dc3b002275de070314", remote=True),
     # 409 МБ: качаем только model.safetensors (без дублирующего pytorch_model.bin)
     "roberta-zinc-480m": dict(repo="entropy/roberta_zinc_480m", rev="05b00ec36b6d22e365cc06079516a5611c5f1d26",
                               patterns=["*.json", "*.txt", "model.safetensors"]),

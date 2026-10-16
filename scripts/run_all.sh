@@ -13,13 +13,13 @@ step() { echo; echo "=== $* ==="; }
 need() { [ "${FORCE:-0}" = 1 ] || ! [ -e "$1" ]; }   # true, если надо считать
 
 step "тесты"; python -m pytest -q
-need data/raw/summary_done.flag && { step "01 выгрузка из ChEMBL (десятки минут)"; python scripts/01_extract_chembl.py; touch data/raw/summary_done.flag; } || echo "01: готово, пропуск"
-need data/processed/tasks.csv && { step "02 стандартизация"; python scripts/02_standardize.py | tail -5; } || echo "02: готово, пропуск"
-need data/registry/_status.csv && { step "реестр MoleculeNet/TDC"; python scripts/build_registry.py; } || echo "реестр: готов, пропуск"
-need data/processed_clean/tasks.csv && { step "02b очистка (без фильтра по году)"; python scripts/02b_decontaminate.py --no-year --n-jobs 4 | tail -15; } || echo "02b: готово, пропуск"
+if need data/raw/summary_done.flag; then step "01 выгрузка из ChEMBL (десятки минут)"; python scripts/01_extract_chembl.py && touch data/raw/summary_done.flag; else echo "01: готово, пропуск"; fi
+if need data/processed/tasks.csv; then step "02 стандартизация"; python scripts/02_standardize.py | tail -5; else echo "02: готово, пропуск"; fi
+if need data/registry/_status.csv; then step "реестр MoleculeNet/TDC"; python scripts/build_registry.py; else echo "реестр: готов, пропуск"; fi
+if need data/processed_clean/tasks.csv; then step "02b очистка (без фильтра по году)"; python scripts/02b_decontaminate.py --no-year --n-jobs 4 | tail -15; else echo "02b: готово, пропуск"; fi
 step "02c аудит данных"; python scripts/02c_audit_data.py | tail -5 || true
-need data/pilot_clean/tasks.csv && { step "подготовка пилота"; python scripts/make_pilot.py --tasks $PILOT_TASKS; } || echo "пилот подготовлен, пропуск"
-need data/pilot_emb/molformer-xl-10pct.npz && { step "06 эмбеддинги (device=$DEVICE)"; python scripts/06_embed_foundation.py --processed data/pilot_raw --out-dir data/pilot_emb --models chemberta-77m-mlm molformer-xl-10pct --device "$DEVICE"; } || echo "эмбеддинги готовы, пропуск"
+if need data/pilot_clean/tasks.csv; then step "подготовка пилота"; python scripts/make_pilot.py --tasks $PILOT_TASKS; else echo "пилот подготовлен, пропуск"; fi
+if need data/pilot_emb/molformer-xl-10pct.npz; then step "06 эмбеддинги (device=$DEVICE)"; python scripts/06_embed_foundation.py --processed data/pilot_raw --out-dir data/pilot_emb --models chemberta-77m-mlm molformer-xl-10pct --device "$DEVICE"; else echo "эмбеддинги готовы, пропуск"; fi
 step "03 потолок шума"
 for v in clean raw; do python scripts/03_estimate_ceiling.py --processed data/pilot_$v --out results/pilot/ceil_$v --n-boot 1000 | tail -3; done
 step "04 модели (часы; прогресс в results/pilot/*.log)"; scripts/run_pilot.sh

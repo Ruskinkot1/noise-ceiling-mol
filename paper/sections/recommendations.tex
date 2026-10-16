@@ -1,14 +1,17 @@
-\section{Recommendations}
-\paragraph{Minimum detectable effect (MDE).}
-Given test size $n$, the noise floor, the paired standard deviation of per-molecule error differences $\sigma_d$, and the number of tasks/comparisons, the smallest RMSE difference detectable at level $\alpha$ and power $1-\beta$ is approximately $(z_{1-\alpha/2}+z_{1-\beta})\,\sigma_d/\sqrt{n}$ for a paired comparison (before multiple-comparison correction; formula to be validated by simulation \todo{validate}). Differences below the MDE or inside the ceiling uncertainty should not be reported as improvements. Empirical MDE values: \tbd{}.
+\section{Recommendations}\label{sec:recs}
+\paragraph{Minimum detectable effect.}
+For a paired comparison of two models on one test set of $n$ molecules, with per-molecule differences of squared errors $d_i=e_{A,i}^2-e_{B,i}^2$, the smallest MSE difference detectable at level $\alpha$ with power $1-\beta$ is approximately $(z_{1-\alpha/2}+z_{1-\beta})\,\mathrm{sd}(d)/\sqrt{n}$; dividing by $2\,\mathrm{RMSE}_B$ converts it to RMSE units (delta method), and dividing by $\mathrm{RMSE}_{\text{mean}}-\mathrm{RMSE}_{\text{floor}}$ to units of $f$. On our test sets (200--1{,}900 molecules) the median MDE ($\alpha=0.05$, power 0.8) is about 0.04 in $f$ for ECFP+RF versus ECFP+GBM, whose errors are strongly correlated, and about 0.08 for frozen embeddings versus ECFP+GBM (\texttt{results/full\_clean/mde.csv}). Differences smaller than this on a single dataset should not be reported as improvements; detecting them requires pooling over tasks with a paired test, as we do here. The approximation assumes independent test molecules; molecules from the same document or series have correlated errors, so these MDEs are optimistic. It has not been validated by simulation.
+
 \paragraph{Reporting protocol.}
-Report per endpoint: estimated $\hat\sigma$ with CI and number of replicated molecules; $f$ alongside RMSE/$R^2$; ChEMBL release and date; split type and seeds; paired CIs against a tuned ECFP+GBM baseline; leakage checks (InChIKey, scaffold, temporal, pretraining-corpus overlap).
+For each task, report: the estimated between-document standard deviation with confidence intervals from a bootstrap over document pairs, the number of replicated molecules and of distinct document pairs, the trimming rule, and how duplicated values and stereoisomers were handled; $f$ alongside RMSE and $R^2$; the ChEMBL release and retrieval date; split type and seeds; paired differences against a tuned ECFP baseline with a test over tasks; and the decontamination performed (exact, connectivity and near-analogue matches against public benchmarks; status of pretraining-corpus overlap).
+
 \paragraph{Checklist.}
 \begin{itemize}[nosep]
-\item Are replicates from independent documents, and how many per molecule?
-\item Is the ceiling computed on the test molecules, with CI and sensitivity to thresholds?
-\item Is the baseline tuned with the same budget as the proposed model?
-\item Are three split types and $\ge5$ seeds reported?
-\item Is $f>1$ investigated as possible leakage or noise fitting?
-\item Is pretraining-data overlap with the test set checked or stated as unknown?
+\item Are replicates from independent documents, and how many molecules have them?
+\item Is the floor computed for the test molecules, with a confidence interval over document pairs and sensitivity to trimming and duplicated values?
+\item Is the ECFP baseline tuned with the same budget as the proposed model?
+\item Are random, scaffold and temporal splits and at least five seeds reported?
+\item Is every $f>1$ investigated (leakage, within-document effects, floor estimate) rather than reported as success?
+\item Is overlap of the test set with pretraining data checked, or stated as unknown?
+\item Is the claimed improvement larger than the minimum detectable effect, or tested across tasks?
 \end{itemize}
