@@ -1,0 +1,2 @@
+task,split,seed,model,n_train,n_test,best_params,test_mean_inv_ndocs,rmse,mae,r2,spearman,rmse_mean
+CHEMBL237_IC50,random,0,ft-chemberta-77m-mlm,800,200,"{'lr': 0.0001, 'epochs': 11, 'val_rmse_std': 0.5839}",0.9491666666666667,0.7943539313693952,0.5897383246103923,0.4899115300997299,0.7287360291933769,1.1144061454764767

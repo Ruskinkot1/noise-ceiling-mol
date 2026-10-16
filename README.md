@@ -92,3 +92,31 @@ DEVICE=cpu bash scripts/run_all.sh          # Mac Apple Silicon: DEVICE=mps NJOB
 ```
 `scripts/run_all.sh` проходит тесты → выгрузку ChEMBL → очистку → пилот → потолок → модели → доля потолка → разрезы. Готовые этапы пропускаются (`FORCE=1` пересчитывает).
 Полностью `run_all.sh` целиком я не гонял одним запуском: этапы проверялись по отдельности.
+
+## Воспроизведение препринта локально (проверено на Mac M1, Python 3.11)
+Данные (ChEMBL 37, выгрузка 2026-10-10) и все результаты лежат в репозитории; эмбеддинги — нет (~400 МБ, пересчитываются).
+```bash
+git clone -b full-experiment-preprint https://github.com/Ruskinkot1/noise-ceiling-mol.git && cd noise-ceiling-mol
+python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && pip install -e .
+python -m pytest -q
+```
+1. **Только таблицы и рисунки статьи из готовых результатов** (минуты):
+```bash
+export OMP_NUM_THREADS=1
+python scripts/09_mde_figures.py            # MDE и рисунки -> paper/figures
+python scripts/10_ceiling_robustness.py     # устойчивость оценки шума
+python scripts/make_paper_tables.py         # paper/sections/results.tex и appendix.tex
+cd paper && tectonic -X compile main.tex    # PDF (brew install tectonic); или pdflatex+bibtex
+```
+2. **Пересчитать модели на сохранённых данных** (≈1,5 суток на 6 ядрах; эмбеддинги ~1 ч на MPS, скачают ~200 МБ весов):
+```bash
+DEVICE=mps NJOBS=6 bash scripts/run_full.sh        # 17 задач, очищенные данные: эмбеддинги, потолок, ECFP + эмбеддинги
+NJOBS=5 bash scripts/run_full_raw.sh               # те же модели на неочищенных данных
+python scripts/merge_pilot.py full
+python scripts/05_fraction_of_ceiling.py --results results/full_clean --processed data/full_clean --n-boot 300
+python scripts/05_fraction_of_ceiling.py --results results/full_raw   --processed data/full_raw   --n-boot 300
+```
+   D-MPNN и дообучение (5 задач): `PREFIX=full DEVICE=cpu bash scripts/_pilot_job.sh clean <TASK> gnn 3 gnn_dmpnn`,
+   `python scripts/08_finetune.py --processed data/full_clean --tasks <TASK> --seeds 3 --device mps --out results/full/ft_clean_<TASK>.csv --pred-out results/full/ft_clean_<TASK>.pred.csv`.
+3. **С нуля, включая выгрузку ChEMBL** (API отдаёт текущий релиз, числа могут отличаться): `bash scripts/run_all.sh`, затем шаг 2.
+На Mac не давайте ноутбуку засыпать: `caffeinate -i bash scripts/run_full.sh`. Для D-MPNN используйте `DEVICE=cpu` (на MPS падает).

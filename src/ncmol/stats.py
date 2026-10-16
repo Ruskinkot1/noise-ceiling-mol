@@ -311,6 +311,8 @@ def load_predictions(results_dir, processed_dir):
 
     r, pdir = Path(results_dir), Path(processed_dir)
     pq, csv = r / "predictions.parquet", r / "predictions.csv"
+    if not csv.exists() and (r / "predictions.csv.gz").exists():  # в git хранится сжатая копия
+        csv = r / "predictions.csv.gz"
     if pq.exists():
         try:
             p = pd.read_parquet(pq)

@@ -1,4 +1,6 @@
-Каталог для данных (в git не коммитится).
+Каталог для данных. В git лежат `raw/`, `processed/`, `processed_clean/`, `full_clean/`, `full_raw/`, `pilot_clean/`, `pilot_raw/`
+(выгрузка ChEMBL 37 от 2026-10-10; лицензия ChEMBL — CC BY-SA 3.0, производные данные под той же лицензией).
+Не лежат: эмбеддинги (`full_emb/`, `pilot_emb/` — пересчитываются scripts/06), реестр бенчмарков (`registry/` — scripts/build_registry.py), `processed_raw/` (копия `processed/`).
 - SQLite-дамп ChEMBL (5.7 ГБ) НЕ используется: данные берутся из REST API (scripts/01).
 - `data/raw/`        — вывод scripts/01
 - `data/processed/`  — вывод scripts/02

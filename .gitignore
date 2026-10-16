@@ -4,7 +4,16 @@ __pycache__/
 *.egg-info/
 data/*
 !data/README.md
-results/
+# данные, нужные для воспроизведения таблиц (ChEMBL 37, CC BY-SA 3.0); эмбеддинги, реестр бенчмарков и processed_raw не храним
+!data/raw/
+!data/processed/
+!data/processed_clean/
+!data/full_clean/
+!data/full_raw/
+!data/pilot_clean/
+!data/pilot_raw/
+# результаты храним; несжатые predictions.csv — нет (в git лежит predictions.csv.gz)
+results/**/predictions.csv
 *.sqlite
 *.db
 *.log

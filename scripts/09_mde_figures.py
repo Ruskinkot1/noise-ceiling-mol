@@ -4,6 +4,8 @@ MDE на одном тесте (задача x сплит x сид) для па�
 d_i = e_m,i^2 - e_b,i^2 по тест-молекулам; SE = sd(d)/sqrt(n); MDE_MSE = (z_.975 + z_.8) SE;
 MDE_RMSE = MDE_MSE / (2 RMSE_b) (дельта-метод, src/ncmol/stats.py); в долях потолка: / (RMSE_mean - RMSE_floor).
 Выход: results/full_clean/mde.csv, paper/figures/{paired_diff,floor_vs_rmse}.pdf, paper/sections/mde_numbers.tex"""
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -18,7 +20,7 @@ MODELS = {"ecfp_rf": ("ECFP+RF", "#2a78d6", "o"), "emb-chemberta-77m-mlm_gbm": (
 SPL = ["random", "scaffold", "temporal"]
 INK, MUTED, GRID = "#1f1f1e", "#6b6a64", "#e4e3dd"
 
-pred = pd.read_csv(f"{R}/predictions.csv")
+pred = pd.read_csv(f"{R}/predictions.csv" if Path(f"{R}/predictions.csv").exists() else f"{R}/predictions.csv.gz")
 floor = pd.read_csv(f"{R}/ceilings.csv").set_index("task").rmse_floor
 pred["se2"] = (pred.pred - pred.y) ** 2
 rows = []
