@@ -18,3 +18,4 @@ results/**/predictions.csv
 *.db
 *.log
 paper/main.pdf
+dist/
