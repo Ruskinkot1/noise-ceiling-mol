@@ -120,3 +120,6 @@ python scripts/05_fraction_of_ceiling.py --results results/full_raw   --processe
    `python scripts/08_finetune.py --processed data/full_clean --tasks <TASK> --seeds 3 --device mps --out results/full/ft_clean_<TASK>.csv --pred-out results/full/ft_clean_<TASK>.pred.csv`.
 3. **С нуля, включая выгрузку ChEMBL** (API отдаёт текущий релиз, числа могут отличаться): `bash scripts/run_all.sh`, затем шаг 2.
 На Mac не давайте ноутбуку засыпать: `caffeinate -i bash scripts/run_full.sh`. Для D-MPNN используйте `DEVICE=cpu` (на MPS падает).
+
+## Лицензия
+Код — MIT (файл `LICENSE`). Данные в `data/` получены из ChEMBL 37 и распространяются, как и оригинал, под CC BY-SA 3.0 Unported.
