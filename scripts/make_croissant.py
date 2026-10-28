@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Черновик Croissant (core + RAI) для датасета из data/<папка>/*.molecules.csv.
-URL размещения (HF/Dataverse/Kaggle/OpenML) ещё не существует: --base-url по умолчанию заглушка, файл НЕ готов к подаче.
-Проверка: python scripts/make_croissant.py && python -c "import mlcroissant as m; m.Dataset('croissant/noise_ceiling_mol.json')" """
+"""Draft Croissant (core + RAI) for the dataset in data/<folder>/*.molecules.csv.
+The hosting URL (HF/Dataverse/Kaggle/OpenML) does not exist yet: --base-url defaults to a placeholder, the file is NOT ready for submission.
+Check: python scripts/make_croissant.py && python -c "import mlcroissant as m; m.Dataset('croissant/noise_ceiling_mol.json')" """
 import argparse, glob, hashlib, json
 from pathlib import Path
 
@@ -52,4 +52,4 @@ meta = {"@context": ctx, "@type": "sc:Dataset", "conformsTo": "http://mlcommons.
         "rai:dataSocialImpact": "Low direct risk; could support more cautious interpretation of benchmark rankings. Misuse as a ground-truth potency reference should be avoided."}
 Path(a.out).parent.mkdir(parents=True, exist_ok=True)
 json.dump(meta, open(a.out, "w"), ensure_ascii=False, indent=1)
-print(f"{a.out}: {len(dist)} файлов, {len(rsets)} recordSet; URL размещения — заглушка")
+print(f"{a.out}: {len(dist)} files, {len(rsets)} recordSet; hosting URL is a placeholder")

@@ -102,7 +102,7 @@ def main():
     r = Path(a.results)
     pdir = Path(a.processed)
     tasks = pd.read_csv(pdir / "tasks.csv")
-    if "target" not in tasks.columns:  # 02b не сохраняет target/type: task = "<CHEMBL_ID>_<тип>"
+    if "target" not in tasks.columns:  # 02b does not save target/type: task = "<CHEMBL_ID>_<type>"
         tasks["target"] = tasks["task"].str.rsplit("_", n=1).str[0]
         tasks["type"] = tasks["task"].str.rsplit("_", n=1).str[1]
     tmeta = tasks.set_index("task")

@@ -1,21 +1,21 @@
-# Аудит валидности данных (scripts/02c_audit_data.py, очищенные данные, 58 пар «мишень × тип»)
+# Data validity audit (scripts/02c_audit_data.py, cleaned data, 58 target × type pairs)
 
-Полные таблицы: results/audit/*.csv (в git не входят). Ниже — только то, что посчитано.
+Full tables: results/audit/*.csv (not in git). Below is only what was computed.
 
-## Стереоизомеры: завышает ли шум объединение по InChIKey14?
-Пары измерений одной молекулы из разных документов, взвешено по числу пар:
+## Stereoisomers: does merging by InChIKey14 inflate the noise?
+Pairs of measurements of the same molecule from different documents, weighted by number of pairs:
 
-| Тип пары | Пар | Средний \\|Δ pActivity\\| | Доля с \\|Δ\\| ≥ 1 |
+| Pair type | Pairs | Mean \\|Δ pActivity\\| | Fraction with \\|Δ\\| ≥ 1 |
 |---|---|---|---|
-| Один и тот же полный InChIKey | 578 | 0,857 | 0,341 |
-| Разные полные ключи при том же InChIKey14 | 1 667 | 0,528 | 0,195 |
+| Same full InChIKey | 578 | 0.857 | 0.341 |
+| Different full keys, same InChIKey14 | 1,667 | 0.528 | 0.195 |
 
-Пары с разными стереовариантами **не шумнее** пар с одинаковым вариантом, поэтому объединение по InChIKey14 само по себе шум не раздувает.
-Оговорки: «разные полные ключи» включают случай «в одном документе стереохимия не указана»; цифры сырые, без поправки на задачи с малым числом пар;
-доля молекул с несколькими полными ключами около 4%. Вопрос закрыт для данной выборки, а не вообще.
+Pairs with different stereo variants are **not noisier** than pairs with the same variant, so merging by InChIKey14 does not by itself inflate the noise.
+Caveats: "different full keys" includes the case where stereochemistry is not specified in one of the documents; the numbers are raw, with no correction for tasks with few pairs;
+the fraction of molecules with several full keys is about 4%. The question is closed for this sample, not in general.
 
-## Прочее
-- Доля молекул с повтором в двух и более документах небольшая (порядка 1–6% по задачам).
-- Без фильтра по большим расхождениям σ у некоторых задач огромна (hERG IC50: 1,80 pChEMBL), то есть выбросы и ошибки единиц реальны; в потолке они ограничены порогом \\|Δ\\| ≤ 3.
-- Не проверено (results/audit/not_checked.csv): общие авторы документов, условия ассея (в выгрузку не попали поля описания), перепубликация данных, таутомеры, ручной аудит больших пар.
-- Версия ChEMBL: ChEMBL_37, релиз 2026-05-01 (по API /status, 2026-10-11).
+## Other
+- The fraction of molecules replicated in two or more documents is small (on the order of 1–6% per task).
+- Without a filter on large discrepancies, σ is huge for some tasks (hERG IC50: 1.80 pChEMBL), i.e. outliers and unit errors are real; in the ceiling they are limited by the threshold \\|Δ\\| ≤ 3.
+- Not verified (results/audit/not_checked.csv): shared authors of documents, assay conditions (description fields were not included in the export), republication of data, tautomers, manual audit of large pairs.
+- ChEMBL version: ChEMBL_37, release 2026-05-01 (per API /status, 2026-10-11).

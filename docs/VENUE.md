@@ -1,12 +1,12 @@
-# Площадка: NeurIPS Evaluations & Datasets (бывш. Datasets & Benchmarks)
+# Venue: NeurIPS Evaluations & Datasets (formerly Datasets & Benchmarks)
 
-Проверено по странице https://neurips.cc/Conferences/2026/CallForEvaluationsDatasets (открыта 2026-10-11):
-- В 2026 трек называется **Evaluations & Datasets (E&D)**; в него входят анализ бенчмарков, новые протоколы оценки, документация, негативные результаты и аудиты данных. Новая модель не требуется.
-- Сроки 2026: аннотация 4 мая 2026 (AoE), полный текст 6 мая 2026 (AoE), уведомление 24 сентября 2026 (AoE). **Эти сроки прошли.** Сроки следующего цикла на странице не указаны (не проверено).
-- Рецензирование двойное слепое по умолчанию (для не анонимизируемых данных — single-blind по форме подачи).
-- Код: обязателен при подаче, если главный вклад — исполняемый артефакт; доступен без личного запроса; к camera-ready код и данные публичны.
-- Данные: на специализированной платформе (Dataverse, Kaggle, Hugging Face, OpenML), доступны рецензентам при подаче; для наборов больше 4 ГБ — маленький образец.
-- **Croissant обязателен**: файл прикладывается в OpenReview, нужны core и RAI (Responsible AI) поля; платформы генерируют core автоматически, RAI дописываются вручную.
-- Лимит страниц и чек-лист на странице не указаны — отсылка к Main Track CFP (не проверено).
+Checked against the page https://neurips.cc/Conferences/2026/CallForEvaluationsDatasets (opened 2026-10-11):
+- In 2026 the track is called **Evaluations & Datasets (E&D)**; it covers benchmark analysis, new evaluation protocols, documentation, negative results and data audits. A new model is not required.
+- 2026 deadlines: abstract 4 May 2026 (AoE), full paper 6 May 2026 (AoE), notification 24 September 2026 (AoE). **These deadlines have passed.** Deadlines for the next cycle are not given on the page (not verified).
+- Review is double-blind by default (for data that cannot be anonymized, single-blind via the submission form).
+- Code: required at submission if the main contribution is an executable artifact; available without personal request; code and data are public by camera-ready.
+- Data: on a dedicated platform (Dataverse, Kaggle, Hugging Face, OpenML), available to reviewers at submission; for datasets larger than 4 GB, a small sample.
+- **Croissant is mandatory**: the file is attached in OpenReview, core and RAI (Responsible AI) fields are required; platforms generate core automatically, RAI is added by hand.
+- The page limit and checklist are not given on the page; it refers to the Main Track CFP (not verified).
 
-Следствия для проекта: (1) подача в 2026 невозможна, нужна другая площадка/цикл; (2) формулировка «Datasets & Benchmarks» в наших файлах устарела; (3) не хватает Croissant-файла с RAI-полями и размещения датасета на HF/Dataverse/Kaggle/OpenML; (4) нужно анонимизировать код и данные для двойного слепого рецензирования.
+Implications for the project: (1) submission in 2026 is not possible, another venue/cycle is needed; (2) the wording "Datasets & Benchmarks" in our files is outdated; (3) a Croissant file with RAI fields and hosting of the dataset on HF/Dataverse/Kaggle/OpenML are missing; (4) code and data must be anonymized for double-blind review.
