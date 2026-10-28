@@ -5,7 +5,7 @@ import pandas as pd
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--tasks", nargs="+", default=["CHEMBL237_IC50", "CHEMBL206_IC50", "CHEMBL204_Ki"])
-ap.add_argument("--name", default="pilot", help="префикс папок: data/<name>_raw и data/<name>_clean")
+ap.add_argument("--name", default="pilot", help="folder prefix: data/<name>_raw and data/<name>_clean")
 ap.add_argument("--versions", nargs="+", default=["raw", "clean"], choices=["raw", "clean"])
 a = ap.parse_args()
 for name, src in [(f"{a.name}_{v}", {"raw": "data/processed", "clean": "data/processed_clean"}[v]) for v in a.versions]:

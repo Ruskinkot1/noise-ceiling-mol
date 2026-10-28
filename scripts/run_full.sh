@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Полный бенчмарк на очищенных данных (задачи из data/full_clean). Возобновляемый: задание = (задача, сплит), готовые пропускаются.
-# STAGE=ecfp  — ECFP+GBM/RF (эмбеддинги не нужны);  STAGE=emb — головы над эмбеддингами (нужен data/full_emb);  STAGE=gnn — D-MPNN.
-# Сокращённый протокол (отклонение от плана, см. docs/REPORT.md): 3 сида, подбор 2 конфигурации на модель, без ECFP+MLP.
+# Full benchmark on the cleaned data (tasks from data/full_clean). Resumable: job = (task, split); completed jobs are skipped.
+# STAGE=ecfp  — ECFP+GBM/RF (no embeddings needed);  STAGE=emb — heads over embeddings (needs data/full_emb);  STAGE=gnn — D-MPNN.
+# Reduced protocol (deviation from the plan, see docs/REPORT.md): 3 seeds, 2 configurations tuned per model, no ECFP+MLP.
 set -u
 cd "$(dirname "$0")/.."
 export OMP_NUM_THREADS=1
@@ -17,7 +17,7 @@ mkdir -p results/full
 for d in data/full_clean/*.molecules.csv; do t=$(basename "$d" .molecules.csv); for sp in random scaffold temporal; do echo "$t $sp"; done; done |
 xargs -P "$NJOBS" -L1 bash -c '
   t=$0; sp=$1; out=results/full/${STAGE}_${t}_${sp}.csv
-  [ -s "$out" ] && { echo "$t $sp $STAGE: готово, пропуск"; exit 0; }
+  [ -s "$out" ] && { echo "$t $sp $STAGE: done, skipping"; exit 0; }
   python scripts/04_run_benchmark.py --processed data/full_clean --emb-dir data/full_emb --tasks $t --splits $sp \
     --seeds $SEEDS --n-trials $TRIALS --device "$DEVICE" --models $MODELS --out $out --pred-out results/full/${STAGE}_${t}_${sp}.pred.csv \
     > results/full/${STAGE}_${t}_${sp}.log 2>&1; echo "$t $sp $STAGE exit=$?"'
