@@ -5,3 +5,6 @@ scikit-learn
 rdkit
 pyyaml
 pytest
+tabulate
+torch
+transformers

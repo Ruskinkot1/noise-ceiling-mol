@@ -1,0 +1,1639 @@
+{
+ "@context": {
+  "@language": "en",
+  "@vocab": "https://schema.org/",
+  "citeAs": "cr:citeAs",
+  "column": "cr:column",
+  "conformsTo": "dct:conformsTo",
+  "cr": "http://mlcommons.org/croissant/",
+  "rai": "http://mlcommons.org/croissant/RAI/",
+  "data": {
+   "@id": "cr:data",
+   "@type": "@json"
+  },
+  "dataType": {
+   "@id": "cr:dataType",
+   "@type": "@vocab"
+  },
+  "dct": "http://purl.org/dc/terms/",
+  "examples": {
+   "@id": "cr:examples",
+   "@type": "@json"
+  },
+  "extract": "cr:extract",
+  "field": "cr:field",
+  "fileProperty": "cr:fileProperty",
+  "fileObject": "cr:fileObject",
+  "fileSet": "cr:fileSet",
+  "format": "cr:format",
+  "includes": "cr:includes",
+  "isLiveDataset": "cr:isLiveDataset",
+  "jsonPath": "cr:jsonPath",
+  "key": "cr:key",
+  "md5": "cr:md5",
+  "parentField": "cr:parentField",
+  "path": "cr:path",
+  "recordSet": "cr:recordSet",
+  "references": "cr:references",
+  "equivalentProperty": "cr:equivalentProperty",
+  "regex": "cr:regex",
+  "samplingRate": "cr:samplingRate",
+  "repeated": "cr:repeated",
+  "replace": "cr:replace",
+  "sc": "https://schema.org/",
+  "separator": "cr:separator",
+  "source": "cr:source",
+  "subField": "cr:subField",
+  "transform": "cr:transform"
+ },
+ "@type": "sc:Dataset",
+ "conformsTo": "http://mlcommons.org/croissant/1.0",
+ "name": "noise-ceiling-mol",
+ "description": "Replicate potency measurements (Ki, IC50) for the same molecules from different ChEMBL documents, standardized and decontaminated against MoleculeNet/TDC, for estimating a noise ceiling in molecular property benchmarks.",
+ "license": "https://creativecommons.org/licenses/by-sa/3.0/",
+ "url": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol",
+ "version": "0.1.0",
+ "citeAs": "TODO: not published; authors and DOI not assigned (anonymous for double-blind review)",
+ "datePublished": "2026-10-11",
+ "creator": {
+  "@type": "sc:Person",
+  "name": "TODO (anonymous for review)"
+ },
+ "isLiveDataset": false,
+ "distribution": [
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL203_IC50-csv",
+   "name": "CHEMBL203_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL203_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL203_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "7d2926cc39d340e230e5618f1113509c"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL204_Ki-csv",
+   "name": "CHEMBL204_Ki.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL204_Ki",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL204_Ki.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "16a0e2047e15d9033e548b1fe1556103"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL205_Ki-csv",
+   "name": "CHEMBL205_Ki.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL205_Ki",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL205_Ki.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "252fe7a7907366a087752460039d3083"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL206_IC50-csv",
+   "name": "CHEMBL206_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL206_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL206_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "db0bb77ad0e73aafc707c55fd965fbb5"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL214_Ki-csv",
+   "name": "CHEMBL214_Ki.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL214_Ki",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL214_Ki.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "b78d028f9644cff6f6875ae49c04a6e1"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL217_Ki-csv",
+   "name": "CHEMBL217_Ki.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL217_Ki",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL217_Ki.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "4db1a80c46baa1812643517d8012eb39"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL233_Ki-csv",
+   "name": "CHEMBL233_Ki.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL233_Ki",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL233_Ki.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "9008d5614bff098bb8cc96538c862c9e"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL234_Ki-csv",
+   "name": "CHEMBL234_Ki.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL234_Ki",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL234_Ki.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "2e8280b41b5cfa072bac3ff89349aca5"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL237_IC50-csv",
+   "name": "CHEMBL237_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL237_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL237_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "cf9bed4651922465f6d7bd8e953811ba"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL237_Ki-csv",
+   "name": "CHEMBL237_Ki.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL237_Ki",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL237_Ki.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "d007322d348bcda537e895bb4bdc7e97"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL251_Ki-csv",
+   "name": "CHEMBL251_Ki.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL251_Ki",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL251_Ki.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "409cd44478a1422c84e79624be293c68"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL279_IC50-csv",
+   "name": "CHEMBL279_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL279_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL279_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "46588a348c79fbe5cb6dc0bb0d866141"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL2971_IC50-csv",
+   "name": "CHEMBL2971_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL2971_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL2971_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "9e6733bd12940a04fd1e82f2ba55db72"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL325_IC50-csv",
+   "name": "CHEMBL325_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL325_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL325_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "0095df2142b7068c0313977a94c76a1b"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL4005_IC50-csv",
+   "name": "CHEMBL4005_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL4005_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL4005_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "b3edf2fa1091c3785587e04c3bce4c5e"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL4822_IC50-csv",
+   "name": "CHEMBL4822_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL4822_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL4822_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "17fbf0b711642f860e7bb3690406f1d6"
+  },
+  {
+   "@type": "cr:FileObject",
+   "@id": "CHEMBL5145_IC50-csv",
+   "name": "CHEMBL5145_IC50.molecules.csv",
+   "description": "Molecules and document-averaged pChEMBL for task CHEMBL5145_IC50",
+   "contentUrl": "https://TODO-hosting-not-created.invalid/noise-ceiling-mol/CHEMBL5145_IC50.molecules.csv",
+   "encodingFormat": "text/csv",
+   "md5": "f59a75933be1db6480a953fabd1da5f4"
+  }
+ ],
+ "recordSet": [
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL203_IC50",
+   "name": "CHEMBL203_IC50",
+   "description": "Endpoint CHEMBL203_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL203_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL203_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL203_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL203_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL203_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL203_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL203_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL203_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL203_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL203_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL204_Ki",
+   "name": "CHEMBL204_Ki",
+   "description": "Endpoint CHEMBL204_Ki: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL204_Ki/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL204_Ki-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL204_Ki/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL204_Ki-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL204_Ki/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL204_Ki-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL204_Ki/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL204_Ki-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL204_Ki/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL204_Ki-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL205_Ki",
+   "name": "CHEMBL205_Ki",
+   "description": "Endpoint CHEMBL205_Ki: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL205_Ki/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL205_Ki-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL205_Ki/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL205_Ki-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL205_Ki/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL205_Ki-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL205_Ki/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL205_Ki-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL205_Ki/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL205_Ki-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL206_IC50",
+   "name": "CHEMBL206_IC50",
+   "description": "Endpoint CHEMBL206_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL206_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL206_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL206_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL206_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL206_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL206_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL206_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL206_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL206_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL206_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL214_Ki",
+   "name": "CHEMBL214_Ki",
+   "description": "Endpoint CHEMBL214_Ki: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL214_Ki/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL214_Ki-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL214_Ki/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL214_Ki-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL214_Ki/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL214_Ki-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL214_Ki/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL214_Ki-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL214_Ki/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL214_Ki-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL217_Ki",
+   "name": "CHEMBL217_Ki",
+   "description": "Endpoint CHEMBL217_Ki: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL217_Ki/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL217_Ki-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL217_Ki/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL217_Ki-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL217_Ki/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL217_Ki-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL217_Ki/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL217_Ki-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL217_Ki/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL217_Ki-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL233_Ki",
+   "name": "CHEMBL233_Ki",
+   "description": "Endpoint CHEMBL233_Ki: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL233_Ki/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL233_Ki-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL233_Ki/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL233_Ki-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL233_Ki/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL233_Ki-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL233_Ki/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL233_Ki-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL233_Ki/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL233_Ki-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL234_Ki",
+   "name": "CHEMBL234_Ki",
+   "description": "Endpoint CHEMBL234_Ki: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL234_Ki/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL234_Ki-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL234_Ki/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL234_Ki-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL234_Ki/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL234_Ki-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL234_Ki/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL234_Ki-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL234_Ki/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL234_Ki-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL237_IC50",
+   "name": "CHEMBL237_IC50",
+   "description": "Endpoint CHEMBL237_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL237_Ki",
+   "name": "CHEMBL237_Ki",
+   "description": "Endpoint CHEMBL237_Ki: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_Ki/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_Ki-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_Ki/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_Ki-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_Ki/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_Ki-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_Ki/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_Ki-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL237_Ki/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL237_Ki-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL251_Ki",
+   "name": "CHEMBL251_Ki",
+   "description": "Endpoint CHEMBL251_Ki: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL251_Ki/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL251_Ki-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL251_Ki/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL251_Ki-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL251_Ki/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL251_Ki-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL251_Ki/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL251_Ki-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL251_Ki/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL251_Ki-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL279_IC50",
+   "name": "CHEMBL279_IC50",
+   "description": "Endpoint CHEMBL279_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL279_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL279_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL279_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL279_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL279_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL279_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL279_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL279_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL279_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL279_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL2971_IC50",
+   "name": "CHEMBL2971_IC50",
+   "description": "Endpoint CHEMBL2971_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL2971_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL2971_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL2971_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL2971_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL2971_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL2971_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL2971_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL2971_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL2971_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL2971_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL325_IC50",
+   "name": "CHEMBL325_IC50",
+   "description": "Endpoint CHEMBL325_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL325_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL325_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL325_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL325_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL325_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL325_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL325_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL325_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL325_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL325_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL4005_IC50",
+   "name": "CHEMBL4005_IC50",
+   "description": "Endpoint CHEMBL4005_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4005_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4005_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4005_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4005_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4005_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4005_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4005_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4005_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4005_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4005_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL4822_IC50",
+   "name": "CHEMBL4822_IC50",
+   "description": "Endpoint CHEMBL4822_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4822_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4822_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4822_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4822_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4822_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4822_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4822_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4822_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL4822_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL4822_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "@type": "cr:RecordSet",
+   "@id": "CHEMBL5145_IC50",
+   "name": "CHEMBL5145_IC50",
+   "description": "Endpoint CHEMBL5145_IC50: one row per standardized molecule",
+   "field": [
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL5145_IC50/mol_id",
+     "name": "mol_id",
+     "description": "InChIKey connectivity block (first 14 characters) of the standardized molecule",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL5145_IC50-csv"
+      },
+      "extract": {
+       "column": "mol_id"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL5145_IC50/smiles",
+     "name": "smiles",
+     "description": "Standardized canonical SMILES (largest fragment, neutralized)",
+     "dataType": "sc:Text",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL5145_IC50-csv"
+      },
+      "extract": {
+       "column": "smiles"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL5145_IC50/y",
+     "name": "y",
+     "description": "pChEMBL value, mean over documents",
+     "dataType": "sc:Float",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL5145_IC50-csv"
+      },
+      "extract": {
+       "column": "y"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL5145_IC50/n_docs",
+     "name": "n_docs",
+     "description": "Number of distinct ChEMBL documents reporting the molecule",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL5145_IC50-csv"
+      },
+      "extract": {
+       "column": "n_docs"
+      }
+     }
+    },
+    {
+     "@type": "cr:Field",
+     "@id": "CHEMBL5145_IC50/first_year",
+     "name": "first_year",
+     "description": "Earliest publication year among those documents",
+     "dataType": "sc:Integer",
+     "source": {
+      "fileObject": {
+       "@id": "CHEMBL5145_IC50-csv"
+      },
+      "extract": {
+       "column": "first_year"
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "rai:dataCollection": "Extracted via the ChEMBL REST API (ChEMBL_37, released 2026-05-01): activities with standard_relation '=', pChEMBL present, empty data_validity_comment, biochemical assays (type B) with confidence_score >= 8, standard_type Ki or IC50, single-protein human targets. Structures standardized with RDKit (largest fragment, neutralization); values averaged within a document.",
+ "rai:dataCollectionType": "Secondary data analysis of curated literature data (ChEMBL)",
+ "rai:dataPreprocessingProtocol": "Decontamination: exact InChIKey matches (full and 14-character) and ECFP4 Tanimoto > 0.8 analogs of MoleculeNet and TDC molecules removed; Polaris not included (requires login). No document-year filter was applied; model pretraining corpora (PubChem/ZINC) were not checked (not verified).",
+ "rai:dataBiases": "Literature bias toward well-studied targets and optimized chemical series; molecules with replicates in several documents are not representative of the whole dataset; inter-document differences include systematic assay offsets, not only random error.",
+ "rai:dataLimitations": "Only 17 target-measurement-type tasks pass the replicate threshold; replicate molecules are a small fraction (about 1-6%) of each task; conditions of assays are not compared; stereoisomers are merged by InChIKey connectivity block; tautomers are not normalized.",
+ "rai:personalSensitiveInformation": "None: molecular structures and bioactivity values only; no personal data.",
+ "rai:dataUseCases": "Estimating noise ceilings and reporting model performance as a fraction of the ceiling; comparing fingerprint, graph and foundation-model baselines. Not intended for clinical decisions or compound prioritization without validation.",
+ "rai:dataSocialImpact": "Low direct risk; could support more cautious interpretation of benchmark rankings. Misuse as a ground-truth potency reference should be avoided."
+}
