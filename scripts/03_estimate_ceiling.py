@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Шаг 3. Потолок шума: sigma, RMSE_floor, R2_max + бутстрэп + чувствительность к порогам.
-Выход: results/ceilings.csv, results/ceiling_sensitivity.csv.
-Критерий остановки нед. 5: если R2_max у большинства задач близок к 1 — переформулировать вклад."""
+"""Step 3. Noise ceiling: sigma, RMSE_floor, R2_max + bootstrap + threshold sensitivity.
+Output: results/ceilings.csv, results/ceiling_sensitivity.csv.
+Week 5 stopping criterion: if R2_max is close to 1 for most tasks, reformulate the contribution."""
 import argparse
 from pathlib import Path
 

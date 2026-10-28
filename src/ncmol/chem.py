@@ -1,4 +1,4 @@
-"""Стандартизация структур и признаки."""
+"""Structure standardization and features."""
 from __future__ import annotations
 
 import numpy as np
@@ -13,8 +13,8 @@ _chooser = rdMolStandardize.LargestFragmentChooser()
 
 
 def standardize(smiles: str):
-    """Самый большой фрагмент -> нейтрализация -> канонический SMILES.
-    Возвращает (smiles, inchikey_connectivity) или (None, None)."""
+    """Largest fragment -> neutralization -> canonical SMILES.
+    Returns (smiles, inchikey_connectivity) or (None, None)."""
     mol = Chem.MolFromSmiles(smiles) if isinstance(smiles, str) else None
     if mol is None:
         return None, None
@@ -24,7 +24,7 @@ def standardize(smiles: str):
         key = Chem.MolToInchiKey(mol)
     except Exception:
         return None, None
-    # первый блок InChIKey = связность (без стереохимии): стереоизомеры считаем одной молекулой
+    # first InChIKey block = connectivity (no stereochemistry): stereoisomers are treated as one molecule
     return smi, (key.split("-")[0] if key else None)
 
 
