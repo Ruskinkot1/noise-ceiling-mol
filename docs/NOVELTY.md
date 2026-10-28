@@ -24,7 +24,7 @@ for example, work on noise in TDC/Polaris, label noise in ADMET, and pharma-inte
 
 ## Update (W8, 2026-10-09)
 
-Details and the full table across 6 topics: `docs/literature.md`; keys: `paper/references.bib`. Full texts were still not read.
+Details and the full table across 6 topics: `docs/literature.md`. Full texts were still not read.
 
 Corrections to the table above (via Crossref/arXiv, metadata cross-checked):
 
