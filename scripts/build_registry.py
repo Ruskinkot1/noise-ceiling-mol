@@ -1,18 +1,18 @@
 #!/usr/bin/env python
-"""Реестр «уже виденных» молекул из открытых бенчмарков.
+"""Registry of "already seen" molecules from open benchmarks.
 
-Источники (все без регистрации):
-  moleculenet : файлы deepchem на S3 (deepchemdata.s3-us-west-1.amazonaws.com/datasets)
-  tdc         : прямые файлы Harvard Dataverse (api/access/datafile/<id>); id взяты из tdc/metadata.py (pytdc 1.1.15),
-                PyTDC не ставится: скачиваем те же файлы напрямую
-  polaris     : polaris-lib (если установлен и load_dataset работает без логина); прямой URL parquet требует подпись
+Sources (all without registration):
+  moleculenet : deepchem files on S3 (deepchemdata.s3-us-west-1.amazonaws.com/datasets)
+  tdc         : direct Harvard Dataverse files (api/access/datafile/<id>); ids taken from tdc/metadata.py (pytdc 1.1.15),
+                PyTDC is not installed: the same files are downloaded directly
+  polaris     : polaris-lib (if installed and load_dataset works without login); the direct parquet URL requires a signature
 
-Корпуса предобучения моделей (PubChem 77M, PubChem+ZINC 1.1B) НЕ загружаются: см. configs/model_cutoffs.yaml.
+Model pretraining corpora (PubChem 77M, PubChem+ZINC 1.1B) are NOT downloaded: see configs/model_cutoffs.yaml.
 
-Выход: data/registry/<source>.csv.gz с колонками inchikey14, inchikey_full, smiles, source, url, downloaded
-(smiles = стандартизованный ncmol.chem.standardize; нужен для поиска близких аналогов) +
-data/registry/_status.csv (что скачалось, HTTP-статус, размер, число строк/уникальных структур).
-Сырые файлы кладутся в data/registry/_raw/ (в git не идут: data/* в .gitignore).
+Output: data/registry/<source>.csv.gz with columns inchikey14, inchikey_full, smiles, source, url, downloaded
+(smiles = standardized by ncmol.chem.standardize; needed for finding close analogues) +
+data/registry/_status.csv (what was downloaded, HTTP status, size, number of rows/unique structures).
+Raw files go to data/registry/_raw/ (not tracked by git: data/* is in .gitignore).
 """
 import argparse
 import datetime as dt
@@ -26,16 +26,16 @@ import requests
 from ncmol.decontam import REGISTRY_COLS, standardize_table
 
 ROOT = Path(__file__).resolve().parents[1]
-MAX_BYTES = 500 * 1024 * 1024  # жёсткий лимит на один файл
+MAX_BYTES = 500 * 1024 * 1024  # hard limit per file
 
 MN_BASE = "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets"
-MOLECULENET = {  # имя источника -> файл
+MOLECULENET = {  # source name -> file
     "esol": "delaney-processed.csv", "freesolv": "SAMPL.csv", "lipophilicity": "Lipophilicity.csv",
     "bace": "bace.csv", "hiv": "HIV.csv", "bbbp": "BBBP.csv", "tox21": "tox21.csv.gz",
     "clintox": "clintox.csv.gz", "sider": "sider.csv.gz", "toxcast": "toxcast_data.csv.gz", "muv": "muv.csv.gz",
 }
 TDC_BASE = "https://dataverse.harvard.edu/api/access/datafile"
-TDC = {  # имя -> dataverse file id (pytdc 1.1.15 tdc/metadata.py, name2id)
+TDC = {  # name -> dataverse file id (pytdc 1.1.15 tdc/metadata.py, name2id)
     "lipophilicity_astrazeneca": 4259595, "solubility_aqsoldb": 4259610, "hydrationfreeenergy_freesolv": 4259594,
     "caco2_wang": 4259569, "pampa_ncats": 6695858, "approved_pampa_ncats": 6695857, "hia_hou": 4259591,
     "pgp_broccatelli": 4259597, "bioavailability_ma": 4259567, "vdss_lombardo": 4267387,
@@ -48,12 +48,12 @@ TDC = {  # имя -> dataverse file id (pytdc 1.1.15 tdc/metadata.py, name2id)
     "dili": 4259585, "skin_reaction": 4259609, "ames": 4259564, "carcinogens_lagunin": 4259570,
     "ld50_zhu": 4267146, "hiv": 4259593, "sarscov2_3clpro_diamond": 4259606, "sarscov2_vitro_touret": 4259607,
 }
-SMILES_COLS = ["smiles", "mol", "drug", "x", "canonical_smiles", "mol_smiles", "smiles_text"]  # "x": столбец структур в TDC single_pred
+SMILES_COLS = ["smiles", "mol", "drug", "x", "canonical_smiles", "mol_smiles", "smiles_text"]  # "x": structure column in TDC single_pred
 POLARIS_API = "https://polarishub.io/api/v1/dataset"
 
 
 def fetch(url, dest: Path, session):
-    """Скачивает с проверкой лимита размера. -> (http_status, nbytes, error)"""
+    """Downloads with a size-limit check. -> (http_status, nbytes, error)"""
     if dest.exists() and dest.stat().st_size > 0:
         return 200, dest.stat().st_size, "cache"
     try:
@@ -70,7 +70,7 @@ def fetch(url, dest: Path, session):
             if n > MAX_BYTES:
                 f.close()
                 dest.unlink()
-                return 200, n, "too_big(>500MB), не скачано"
+                return 200, n, "too_big(>500MB), not downloaded"
             f.write(chunk)
     return 200, n, ""
 
@@ -104,13 +104,13 @@ def write_registry(source, smiles, url, out_dir, today, n_jobs):
 
 
 def build_polaris(out_dir, raw_dir, today, n_jobs, status, max_table_mb):
-    """Каталог метаданных Polaris открыт (GET /api/v1/dataset). Сами таблицы отдаются через storage-токен,
-    для которого polaris-lib требует OAuth-логин (polaris/hub/storage.py, token-exchange) = регистрация -> не качаем,
-    если polaris-lib не установлен или load_dataset падает без логина."""
+    """The Polaris metadata catalogue is open (GET /api/v1/dataset). The tables themselves are served via a storage token,
+    for which polaris-lib requires an OAuth login (polaris/hub/storage.py, token-exchange) = registration -> not downloaded
+    if polaris-lib is not installed or load_dataset fails without login."""
     try:
         meta = requests.get(POLARIS_API, timeout=60).json()["data"]
     except Exception as e:  # noqa: BLE001
-        status.append(dict(source="polaris", ok=False, note=f"каталог недоступен: {type(e).__name__}"))
+        status.append(dict(source="polaris", ok=False, note=f"catalogue unavailable:{type(e).__name__}"))
         return
     cat = pd.DataFrame([dict(owner=(r.get("owner") or {}).get("slug"), slug=r["slug"], n_rows=r.get("nRows"),
                              table_bytes=(r.get("tableContent") or {}).get("size"), created=str(r.get("createdAt"))[:10],
@@ -124,8 +124,8 @@ def build_polaris(out_dir, raw_dir, today, n_jobs, status, max_table_mb):
         import polaris as po
     except Exception as e:  # noqa: BLE001
         status.append(dict(source="polaris", ok=False, n_rows=len(cat),
-                           note=f"каталог {len(cat)} датасетов сохранён; таблицы не скачаны: polaris-lib не установлен "
-                                f"({type(e).__name__}) и загрузка требует логин"))
+                           note=f"catalogue of {len(cat)} datasets saved; tables not downloaded: polaris-lib is not installed "
+                                f"({type(e).__name__}) and downloading requires login"))
         return
     for r in meta:
         owner = (r.get("owner") or {}).get("slug")
@@ -133,7 +133,7 @@ def build_polaris(out_dir, raw_dir, today, n_jobs, status, max_table_mb):
         size = (r.get("tableContent") or {}).get("size") or 0
         slug = f"{owner}/{r['slug']}"
         if not mol_cols or owner == "tdcommons" or size > max_table_mb * 1e6:
-            continue  # tdcommons-зеркала дублируют TDC; большие таблицы пропускаем
+            continue  # tdcommons mirrors duplicate TDC; large tables are skipped
         source = f"polaris_{owner}_{r['slug']}".replace("-", "_")
         try:
             ds = po.load_dataset(slug)
@@ -149,7 +149,7 @@ def main():
     ap.add_argument("--out", default=str(ROOT / "data/registry"))
     ap.add_argument("--only", nargs="*", default=None, help="moleculenet tdc polaris")
     ap.add_argument("--n-jobs", type=int, default=4)
-    ap.add_argument("--skip-done", action="store_true", help="не пересобирать источники, у которых уже есть csv.gz")
+    ap.add_argument("--skip-done", action="store_true", help="do not rebuild sources that already have a csv.gz")
     ap.add_argument("--polaris-max-mb", type=float, default=30.0)
     a = ap.parse_args()
     out = Path(a.out)
@@ -175,7 +175,7 @@ def main():
                 df = read_table(dest)
                 col = smiles_column(df)
                 if col is None:
-                    row["note"] = f"нет колонки SMILES: {list(df.columns)[:6]}"
+                    row["note"] = f"no SMILES column:{list(df.columns)[:6]}"
                 else:
                     n, nu, nk = write_registry(source, df[col], url, out, today, a.n_jobs)
                     row.update(ok=True, n_rows=n, n_unique=nu, n_ik14=nk)
@@ -188,16 +188,16 @@ def main():
     st = pd.DataFrame(status)
     st["downloaded"] = today
     old = out / "_status.csv"
-    if old.exists() and a.only:  # частичный запуск: обновляем только пересобранные источники
+    if old.exists() and a.only:  # partial run: update only the rebuilt sources
         prev = pd.read_csv(old)
         st = pd.concat([prev[~prev["source"].isin(st["source"])], st], ignore_index=True)
     st.to_csv(old, index=False)
     ok = st[st["ok"] == True]  # noqa: E712
-    print("\nУспешно:", len(ok), "из", len(st))
+    print("\nSucceeded:", len(ok), "of", len(st))
     print(st.drop(columns=[c for c in ["url"] if c in st]).to_string(index=False))
     allr = pd.concat([pd.read_csv(f, usecols=["inchikey14", "inchikey_full"]) for f in sorted(out.glob("*.csv.gz"))])
-    print(f"\nВсего строк: {len(allr)}, уникальных InChIKey14: {allr['inchikey14'].nunique()}, "
-          f"полных: {allr['inchikey_full'].nunique()}")
+    print(f"\nTotal rows: {len(allr)}, unique InChIKey14: {allr['inchikey14'].nunique()}, "
+          f"full:{allr['inchikey_full'].nunique()}")
     return 0
 
 

@@ -1,94 +1,94 @@
 # noise-ceiling-mol
 
-**Потолок шума: что на самом деле измеряют бенчмарки молекулярных свойств, и бьют ли предобученные эмбеддинги ECFP при честной оценке относительно предела измерения.**
-Целевой трек: NeurIPS Datasets & Benchmarks. Статус: **ранний прототип** — код шагов 3–5 проверен на синтетических данных, шаг 1 переписан под REST API (тест парсинга на моке), шаги 1–2 на полном наборе мишеней **ещё не запускались**.
+**The noise ceiling: what molecular property benchmarks actually measure, and whether pretrained embeddings beat ECFP under fair evaluation relative to the measurement limit.**
+Target track: NeurIPS Datasets & Benchmarks. Status: **early prototype** — the code for steps 3–5 has been verified on synthetic data, step 1 has been rewritten to use the REST API (parsing test on a mock), and steps 1–2 have **not yet been run** on the full set of targets.
 
-## Гипотеза
-1. Межлабораторная ошибка в ChEMBL сравнима с ошибкой моделей → часть различий между моделями лежит внутри шума меток.
-2. Потолок оцениваем по повторным измерениям одних молекул из **разных документов**.
-3. Результаты моделей пересчитываем в **долю потолка**; проверяем, держится ли преимущество предобученных эмбеддингов над ECFP+GBM при random / scaffold / temporal сплитах.
+## Hypothesis
+1. Inter-laboratory error in ChEMBL is comparable to model error → part of the differences between models lies within label noise.
+2. We estimate the ceiling from repeated measurements of the same molecules reported in **different documents**.
+3. We recompute model results as a **fraction of the ceiling** and check whether the advantage of pretrained embeddings over ECFP+GBM holds under random / scaffold / temporal splits.
 
-Новизна: частично занята — см. [docs/NOVELTY.md](docs/NOVELTY.md) (ближайшая работа — «Are we fitting data or noise?»).
+Novelty: partly taken — see [docs/NOVELTY.md](docs/NOVELTY.md) (the closest work is "Are we fitting data or noise?").
 
-## Метод потолка (src/ncmol/ceiling.py)
-Модель `y_ij = t_i + e_ij`, `e_ij` — шум между документами. Оценка дисперсии шума — объединённая внутримолекулярная дисперсия по молекулам с ≥2 документами (значения внутри документа усредняются, чтобы повторы были именно межисточниковые):
+## Ceiling method (src/ncmol/ceiling.py)
+Model `y_ij = t_i + e_ij`, where `e_ij` is between-document noise. The noise variance is estimated as the pooled within-molecule variance over molecules with ≥2 documents (values within a document are averaged so that the replicates are strictly cross-source):
 
-- `RMSE_floor = sqrt(s² · mean(1/n_docs))` (метка = среднее по документам),
+- `RMSE_floor = sqrt(s² · mean(1/n_docs))` (label = mean over documents),
 - `R²_max = 1 − s²·mean(1/n_docs) / Var(y)`,
-- `доля потолка`: `frac_rmse = RMSE_floor / RMSE`, `frac_r2 = R² / R²_max`. Значение >1 = подозрение на подгонку шума или утечку.
-- Бутстрэп по молекулам; чувствительность к `min_docs` и обрезке пар `|Δ|` (ошибки единиц).
+- `fraction of ceiling`: `frac_rmse = RMSE_floor / RMSE`, `frac_r2 = R² / R²_max`. A value >1 indicates suspected noise fitting or leakage.
+- Bootstrap over molecules; sensitivity to `min_docs` and to trimming of pairs by `|Δ|` (unit errors).
 
-**Ограничения (писать в статье):** это *вся* межисточниковая изменчивость, включая систематические сдвиги ассеев, а не «чистая» ошибка прибора; допущена гомоскедастичность; реплицированные молекулы могут быть нетипичны для набора.
+**Limitations (to be stated in the paper):** this is the *total* cross-source variability, including systematic assay shifts, rather than "pure" instrument error; homoscedasticity is assumed; replicated molecules may be atypical of the dataset.
 
-## Структура
+## Structure
 ```
-configs/endpoints.yaml   кандидаты мишеней (chembl_id по памяти — НЕ ПРОВЕРЕНО), пороги
-src/ncmol/               chem (стандартизация, ECFP), ceiling, splits, models, metrics
-scripts/01_extract_chembl.py   выгрузка из ChEMBL REST API (SQLite-дамп не используется)
-scripts/02_standardize.py      RDKit-стандартизация, один y на (молекула, документ), tasks.csv
-scripts/03_estimate_ceiling.py потолок + бутстрэп + чувствительность
-scripts/04_run_benchmark.py    ECFP+GBM/RF/MLP × 3 сплита × 5 сидов
-scripts/05_fraction_of_ceiling.py  доля потолка, лидерборд, парное сравнение с ECFP+GBM
-tests/                   синтетические тесты (восстановление σ, сплиты)
-docs/NOVELTY.md          этап 0
+configs/endpoints.yaml   candidate targets (chembl_id from memory — NOT VERIFIED), thresholds
+src/ncmol/               chem (standardization, ECFP), ceiling, splits, models, metrics
+scripts/01_extract_chembl.py   export from the ChEMBL REST API (the SQLite dump is not used)
+scripts/02_standardize.py      RDKit standardization, one y per (molecule, document), tasks.csv
+scripts/03_estimate_ceiling.py ceiling + bootstrap + sensitivity
+scripts/04_run_benchmark.py    ECFP+GBM/RF/MLP × 3 splits × 5 seeds
+scripts/05_fraction_of_ceiling.py  fraction of ceiling, leaderboard, paired comparison with ECFP+GBM
+tests/                   synthetic tests (σ recovery, splits)
+docs/NOVELTY.md          stage 0
 ```
 
-## Запуск
+## Usage
 ```bash
 pip install -e .            # + pytest
-pytest                      # синтетические тесты
-python scripts/01_extract_chembl.py --targets CHEMBL240     # по API; без --targets — кандидаты из configs/endpoints.yaml
-python scripts/02_standardize.py        # печатает, сколько задач прошло порог (нужно >= 15)
+pytest                      # synthetic tests
+python scripts/01_extract_chembl.py --targets CHEMBL240     # via the API; without --targets — candidates from configs/endpoints.yaml
+python scripts/02_standardize.py        # prints how many tasks passed the threshold (need >= 15)
 python scripts/03_estimate_ceiling.py
 python scripts/04_run_benchmark.py
 python scripts/05_fraction_of_ceiling.py
 ```
-Задача = (мишень, тип измерения); IC50 и Ki считаются отдельно.
+A task = (target, measurement type); IC50 and Ki are treated separately.
 
-## Эмбеддинги и D-MPNN (ещё не реализовано)
-- Эмбеддинги: интерфейс готов — `data/embeddings/<name>.npz` (`mol_ids`, `X`), модель `emb-<name>_gbm` / `_mlp` / `_ridge`. Скрипта инференса нет; выбор 3–4 открытых моделей — **не сделан**.
-- D-MPNN: через chemprop, **не подключён**.
+## Embeddings and D-MPNN (not yet implemented)
+- Embeddings: the interface is ready — `data/embeddings/<name>.npz` (`mol_ids`, `X`), models `emb-<name>_gbm` / `_mlp` / `_ridge`. There is no inference script; the choice of 3–4 open models has **not been made**.
+- D-MPNN: via chemprop, **not wired in**.
 
-## План и критерии остановки
-Нед.1 новизна (сделано, частично занято) · 2–3 данные (стоп: <15 задач → сузить) · 4–5 потолок (стоп: потолок ≈ идеал → переформулировать) · 6–7 модели · 8–9 анализ · 10 рекомендации (MDE, протокол) · 11–12 статья, код, лидерборд.
+## Plan and stopping criteria
+Wk 1 novelty (done, partly taken) · 2–3 data (stop: <15 tasks → narrow the scope) · 4–5 ceiling (stop: ceiling ≈ ideal → reformulate) · 6–7 models · 8–9 analysis · 10 recommendations (MDE, protocol) · 11–12 paper, code, leaderboard.
 
-## Проверено / не проверено
-- Проверено: `pytest` (3 теста); шаги 3→5 на синтетике (σ восстановлен 0.42 при истинном 0.4).
-- Не проверено: шаги 1–2 на реальной ChEMBL; список мишеней; все ссылки из NOVELTY.md сверены лишь по выдержкам поиска.
+## Verified / not verified
+- Verified: `pytest` (3 tests); steps 3→5 on synthetic data (σ recovered as 0.42 for a true value of 0.4).
+- Not verified: steps 1–2 on real ChEMBL; the target list; all references in NOVELTY.md were checked only against search excerpts.
 
 ## Project skills
 
 Claude skills for this project live in `.claude/skills/` (`ncm-researcher`, `ncm-novelty-check`, `ncm-collect-replicates`, `ncm-decontaminate`, `ncm-benchmark-models`, `ncm-ceiling-metric`). Sprint notes: `docs/sprint-40min.md`. 
 
 
-## Запуск на Colab
-Ноутбук [notebooks/run_on_colab.ipynb](notebooks/run_on_colab.ipynb) проходит весь конвейер (данные → очистка → потолок → модели → доля потолка).
-Открыть: https://colab.research.google.com/github/Ruskinkot1/noise-ceiling-mol/blob/cloud-data/notebooks/run_on_colab.ipynb
-**Не проверено на Colab.** Всё считается на CPU (GPU не используется), полный пилот занимает часы. Если репозиторий приватный, в ячейке клонирования нужен токен GitHub.
+## Running on Colab
+The notebook [notebooks/run_on_colab.ipynb](notebooks/run_on_colab.ipynb) runs the whole pipeline (data → cleaning → ceiling → models → fraction of ceiling).
+Open: https://colab.research.google.com/github/Ruskinkot1/noise-ceiling-mol/blob/cloud-data/notebooks/run_on_colab.ipynb
+**Not verified on Colab.** Everything runs on CPU (no GPU is used); the full pilot takes hours. If the repository is private, the clone cell needs a GitHub token.
 
-## Запуск на Mac (локально)
-Не проверено на macOS (разрабатывалось на Linux). Нужны Python 3.10–3.13 и около 3 ГБ свободного места (данные ~0,5 ГБ, кэш моделей HF ~0,6 ГБ).
+## Running on Mac (locally)
+Not verified on macOS (developed on Linux). Requires Python 3.10–3.13 and about 3 GB of free disk space (data ~0.5 GB, HF model cache ~0.6 GB).
 ```bash
 git clone -b cloud-data https://github.com/Ruskinkot1/noise-ceiling-mol.git && cd noise-ceiling-mol
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt && pip install -e .
-export OMP_NUM_THREADS=1            # иначе sklearn GBM бывает в сотни раз медленнее при параллельных процессах
+export OMP_NUM_THREADS=1            # otherwise sklearn GBM can be hundreds of times slower with parallel processes
 python -m pytest -q
 python scripts/01_extract_chembl.py && python scripts/02_standardize.py
 python scripts/build_registry.py && python scripts/02b_decontaminate.py --no-year --n-jobs 4
 python scripts/make_pilot.py && python scripts/06_embed_foundation.py --processed data/pilot_raw --out-dir data/pilot_emb --models chemberta-77m-mlm molformer-xl-10pct
-scripts/run_pilot.sh                # можно прерывать и запускать снова: готовые задания пропускаются
+scripts/run_pilot.sh                # can be interrupted and restarted: completed jobs are skipped
 ```
-Устройство для torch выбирается аргументом `--device {cpu,mps,cuda,auto}` (по умолчанию `cpu`) у `scripts/06_embed_foundation.py` и `scripts/04_run_benchmark.py`,
-для пилота — переменной `DEVICE`: `DEVICE=mps NJOBS=1 scripts/run_pilot.sh`. На Mac с Apple Silicon: `--device mps` (если какая-то операция не поддержана, задайте `PYTORCH_ENABLE_MPS_FALLBACK=1`).
-**MPS не проверялся** (на этой машине его нет, проверены только cpu и auto→cpu). Ускоряются эмбеддинги и GNN; sklearn-модели (GBM/RF/MLP) всегда на CPU.
-Если `pip install rdkit` не находит колёса для вашей версии Python, возьмите Python 3.11–3.12.
+The torch device is selected with the `--device {cpu,mps,cuda,auto}` argument (default `cpu`) of `scripts/06_embed_foundation.py` and `scripts/04_run_benchmark.py`,
+and for the pilot with the `DEVICE` variable: `DEVICE=mps NJOBS=1 scripts/run_pilot.sh`. On an Apple Silicon Mac: `--device mps` (if an operation is unsupported, set `PYTORCH_ENABLE_MPS_FALLBACK=1`).
+**MPS has not been tested** (this machine does not have it; only cpu and auto→cpu were tested). Embeddings and GNNs are accelerated; sklearn models (GBM/RF/MLP) always run on CPU.
+If `pip install rdkit` cannot find wheels for your Python version, use Python 3.11–3.12.
 
-## Одной командой
+## One command
 ```bash
 git clone -b cloud-data https://github.com/Ruskinkot1/noise-ceiling-mol.git && cd noise-ceiling-mol
 python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && pip install -e .
 DEVICE=cpu bash scripts/run_all.sh          # Mac Apple Silicon: DEVICE=mps NJOBS=1 bash scripts/run_all.sh
 ```
-`scripts/run_all.sh` проходит тесты → выгрузку ChEMBL → очистку → пилот → потолок → модели → доля потолка → разрезы. Готовые этапы пропускаются (`FORCE=1` пересчитывает).
-Полностью `run_all.sh` целиком я не гонял одним запуском: этапы проверялись по отдельности.
+`scripts/run_all.sh` runs tests → ChEMBL export → cleaning → pilot → ceiling → models → fraction of ceiling → breakdowns. Completed stages are skipped (`FORCE=1` recomputes them).
+I have not run the whole of `run_all.sh` in a single pass: the stages were verified separately.

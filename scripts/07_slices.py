@@ -1,22 +1,22 @@
 #!/usr/bin/env python
-"""Шаг 7. Разрезы разницы «модель − ECFP+GBM» и артефакты сравнения.
+"""Step 7. Slices of the "model - ECFP+GBM" difference and comparison artifacts.
 
-Метрика разреза: ΔRMSE = RMSE(модель) − RMSE(ECFP+GBM) на подмножестве тест-молекул (< 0 = модель лучше),
-в единицах pActivity и в единицах sigma задачи (ΔRMSE/sigma, сопоставимо между задачами). Доля потолка в
-разрезах НЕ используется: нулевая точка и потолок на подмножестве (например, узкий диапазон активности)
-не определены. ДИ — парный кластерный бутстрэп по молекулам внутри подмножества задачи; для разрезов,
-объединяющих задачи, берётся среднее по задачам с равным весом. Пометка «внутри шума» = ДИ содержит 0.
+Slice metric: dRMSE = RMSE(model) - RMSE(ECFP+GBM) on a subset of test molecules (< 0 = model is better),
+in pActivity units and in units of the task's sigma (dRMSE/sigma, comparable across tasks). Fraction of ceiling is
+NOT used in slices: the zero point and the ceiling are undefined on a subset (e.g. a narrow activity range).
+CI is a paired cluster bootstrap over molecules within the task subset; for slices that pool tasks, the
+per-task mean with equal weights is taken. The "inside noise" flag = the CI contains 0.
 
-Разрезы: all (по сплиту), target, noise (n_docs молекулы: 1 / 2 / 3+; прокси шума метки, дисперсия ∝ 1/n_docs),
-tanimoto (макс. Танимото ECFP4 к train: бины), cliff (у молекулы есть сосед в train с Tanimoto >= --cliff-sim
-и |Δy| >= --cliff-delta), y_range (терцили активности в задаче), task_size (терцили числа молекул в задаче).
+Slices: all (per split), target, noise (molecule's n_docs: 1 / 2 / 3+; a proxy for label noise, variance ∝ 1/n_docs),
+tanimoto (max ECFP4 Tanimoto to train: bins), cliff (the molecule has a neighbour in train with Tanimoto >= --cliff-sim
+and |dy| >= --cliff-delta), y_range (activity terciles within the task), task_size (terciles of the number of molecules per task).
 
-Вход: results/predictions.csv|parquet (task, split, seed, model, mol_id, pred), results/ceilings.csv
-(необязательно: sigma), data/processed/*. Выход results/slices/:
-  slices.csv                 — разрезы
-  comparison_artifacts.csv   — по task x split x seed: размер теста, шум метки, дисбаланс диапазона,
-                               распределение max Tanimoto test→train, дрейф по годам (не требует предсказаний)
-  cliff_pairs.csv            — метрики на парах-обрывах внутри теста (знак Δ и RMSE Δ), если есть предсказания
+Input: results/predictions.csv|parquet (task, split, seed, model, mol_id, pred), results/ceilings.csv
+(optional: sigma), data/processed/*. Output results/slices/:
+  slices.csv                 — slices
+  comparison_artifacts.csv   — per task x split x seed: test size, label noise, range imbalance,
+                               distribution of max Tanimoto test->train, drift over years (needs no predictions)
+  cliff_pairs.csv            — metrics on cliff pairs within the test set (sign of delta and RMSE of delta), if predictions exist
 """
 import argparse
 from pathlib import Path
@@ -36,7 +36,7 @@ SIM_LABELS = ["<0.4", "0.4-0.6", "0.6-0.8", ">=0.8"]
 
 
 def test_context(mol: pd.DataFrame, fp: np.ndarray, split: str, seed: int, sim_min: float, delta_min: float):
-    """Контекст тест-молекул одного (сплит, сид): max Tanimoto к train и флаг cliff-молекулы."""
+    """Context of the test molecules for one (split, seed): max Tanimoto to train and the cliff-molecule flag."""
     tr, te = SPLITS[split](mol, seed)
     y = mol["y"].to_numpy(float)
     ms = stats.max_tanimoto_to_train(fp[te], fp[tr])
@@ -92,10 +92,10 @@ def main():
     ap.add_argument("--n-boot", type=int, default=500)
     ap.add_argument("--alpha", type=float, default=0.05)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--seeds", type=int, default=5, help="сиды для артефактов, если предсказаний нет")
-    ap.add_argument("--cliff-sim", type=float, default=0.8, help="порог Tanimoto ECFP4 для cliff (параметр, не подбирался)")
-    ap.add_argument("--cliff-delta", type=float, default=1.5, help="порог |ΔpActivity| для cliff (параметр, не подбирался)")
-    ap.add_argument("--min-mols", type=int, default=30, help="минимум молекул в ячейке разреза (на задачу)")
+    ap.add_argument("--seeds", type=int, default=5, help="seeds for artifacts if there are no predictions")
+    ap.add_argument("--cliff-sim", type=float, default=0.8, help="ECFP4 Tanimoto threshold for cliff (a parameter, not tuned)")
+    ap.add_argument("--cliff-delta", type=float, default=1.5, help="|dpActivity| threshold for cliff (a parameter, not tuned)")
+    ap.add_argument("--min-mols", type=int, default=30, help="minimum molecules in a slice cell (per task)")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -110,7 +110,7 @@ def main():
     pred = stats.load_predictions(r, pdir)
     names = sorted(pred["task"].unique()) if pred is not None else tasks[tasks["passes"]]["task"].tolist()
     mols = {t: pd.read_csv(pdir / f"{t}.molecules.csv") for t in names}
-    fps = {t: ecfp(list(mols[t]["smiles"]), counts=False) for t in names}  # бинарные ECFP4 2048 для Танимото
+    fps = {t: ecfp(list(mols[t]["smiles"]), counts=False) for t in names}  # binary ECFP4 2048 for Tanimoto
     nmol = pd.Series({t: len(mols[t]) for t in names})
     size_lab = {}
     if len(nmol) >= 3:
@@ -121,9 +121,9 @@ def main():
     for t in names:
         art += artifacts(t, mols[t], fps[t], float(sig[t]) if t in sig.index else None, range(a.seeds), list(SPLITS), a.cliff_sim, a.cliff_delta)
     pd.DataFrame(art).to_csv(out / "comparison_artifacts.csv", index=False)
-    print(f"артефакты сравнения: {len(art)} строк -> {out / 'comparison_artifacts.csv'}")
+    print(f"comparison artifacts: {len(art)} rows -> {out / 'comparison_artifacts.csv'}")
     if pred is None:
-        print("results/predictions.* не найден: разрезы не посчитаны (схема — docs/experiment_design.md)")
+        print("results/predictions.* not found: slices not computed (schema: docs/experiment_design.md)")
         return
 
     cells = {}  # (split, slice_type, slice_value, model) -> list of per-task dicts
@@ -159,7 +159,7 @@ def main():
                         continue
                     cells.setdefault((sp, stype, val, m), []).append(
                         {"task": t, "n_mols": len(np.unique(ii)), "est": est[k], "draws": dr[:, k], "sigma": s_t})
-        # пары-обрывы внутри теста (по сидам): способность предсказать знак и величину Δ
+        # cliff pairs within the test set (per seed): ability to predict the sign and magnitude of delta
         for seed, gs in base.groupby("seed"):
             tr, te, _ = test_context(mols[t], fps[t], sp, int(seed), a.cliff_sim, a.cliff_delta)
             pairs = stats.cliff_pairs(fps[t][te], mols[t]["y"].to_numpy(float)[te], a.cliff_sim, a.cliff_delta)

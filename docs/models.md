@@ -1,56 +1,56 @@
-# Модели (W4)
+# Models (W4)
 
-Проверено 2026-10-09. Всё, что не подтверждено карточкой/кодом, помечено «не проверено».
+Checked 2026-10-09. Anything not confirmed by a model card/code is marked "not verified".
 
-## Таблица
+## Table
 
-| Модель (ключ в scripts/06) | Репозиторий @ revision | Лицензия | Размер весов | Дата отсечения обучения | Как запускается | Результат проверки |
+| Model (key in scripts/06) | Repository @ revision | License | Weights size | Training cutoff date | How it is run | Check result |
 |---|---|---|---|---|---|---|
-| ECFP4 (счётчики, 2048) + GBM/RF/MLP/Ridge | rdkit + sklearn | BSD (rdkit, sklearn) | — | — | `--models ecfp_gbm ecfp_rf ecfp_mlp` | работает (тесты pipeline) |
-| D-MPNN (`gnn_dmpnn`) | собственный код `src/ncmol/gnn.py`, чистый torch | код проекта | обучается с нуля | — | `--models gnn_dmpnn` | pytest зелёный; 200 синтетических молекул прогнаны через scripts/04 (3 сплита); см. ниже |
-| ChemBERTa-77M-MLM (`chemberta-77m-mlm`) | DeepChem/ChemBERTa-77M-MLM @ ed8a5374 | в карточке/метаданных HF не указана: не проверено | 13,7 МБ (pytorch_model.bin) | не проверено | `06_embed_foundation.py --models chemberta-77m-mlm` -> `emb-chemberta-77m-mlm_gbm` | инференс на 20 мол. OK, dim 384, NaN нет, 1 невалидный SMILES обработан (нулевой вектор, `valid=False`) |
-| ChemBERTa-77M-MTR (`chemberta-77m-mtr`) | DeepChem/ChemBERTa-77M-MTR @ 66b895cb | не проверено (как выше) | 14,0 МБ | не проверено | аналогично | инференс на 20 мол. OK, dim 384 |
-| ChemBERTa-5M-MLM (`chemberta-5m-mlm`) | DeepChem/ChemBERTa-5M-MLM @ 695672a6 | не проверено | 13,7 МБ | не проверено | аналогично | инференс на 20 и на 200 мол. OK, dim 384 |
-| MoLFormer-XL-both-10pct (`molformer-xl-10pct`) | ibm-research/MoLFormer-XL-both-10pct @ 361063d0 | Apache-2.0 (метаданные и карточка HF) | 187 МБ (safetensors) | карточка: 10% ZINC + 10% PubChem, дата отсечения не указана: не проверено | аналогично; `trust_remote_code=True` | код `modeling_molformer.py` (873 строки) и `configuration_molformer.py` прочитан/просмотрен grep'ом: только torch/transformers, нет сети/файлов/exec/pickle; токенайзер стандартный (tokenizer.json). Инференс на 20 мол. OK, dim 768 |
-| roberta_zinc_480m (`roberta-zinc-480m`) | entropy/roberta_zinc_480m @ 05b00ec3 | MIT (строка «License: MIT» в карточке; в метаданных HF поля license нет) | 409 МБ (качается только model.safetensors, без дублирующего .bin) | ZINC, дата не указана: не проверено | аналогично | инференс на 20 мол. OK, dim 768 |
+| ECFP4 (counts, 2048) + GBM/RF/MLP/Ridge | rdkit + sklearn | BSD (rdkit, sklearn) | — | — | `--models ecfp_gbm ecfp_rf ecfp_mlp` | works (pipeline tests) |
+| D-MPNN (`gnn_dmpnn`) | in-house code `src/ncmol/gnn.py`, pure torch | project code | trained from scratch | — | `--models gnn_dmpnn` | pytest green; 200 synthetic molecules run through scripts/04 (3 splits); see below |
+| ChemBERTa-77M-MLM (`chemberta-77m-mlm`) | DeepChem/ChemBERTa-77M-MLM @ ed8a5374 | not stated in the HF card/metadata: not verified | 13.7 MB (pytorch_model.bin) | not verified | `06_embed_foundation.py --models chemberta-77m-mlm` -> `emb-chemberta-77m-mlm_gbm` | inference on 20 mol. OK, dim 384, no NaN, 1 invalid SMILES handled (zero vector, `valid=False`) |
+| ChemBERTa-77M-MTR (`chemberta-77m-mtr`) | DeepChem/ChemBERTa-77M-MTR @ 66b895cb | not verified (as above) | 14.0 MB | not verified | likewise | inference on 20 mol. OK, dim 384 |
+| ChemBERTa-5M-MLM (`chemberta-5m-mlm`) | DeepChem/ChemBERTa-5M-MLM @ 695672a6 | not verified | 13.7 MB | not verified | likewise | inference on 20 and on 200 mol. OK, dim 384 |
+| MoLFormer-XL-both-10pct (`molformer-xl-10pct`) | ibm-research/MoLFormer-XL-both-10pct @ 361063d0 | Apache-2.0 (HF metadata and card) | 187 MB (safetensors) | card: 10% ZINC + 10% PubChem, cutoff date not stated: not verified | likewise; `trust_remote_code=True` | code `modeling_molformer.py` (873 lines) and `configuration_molformer.py` read/skimmed with grep: only torch/transformers, no network/files/exec/pickle; standard tokenizer (tokenizer.json). Inference on 20 mol. OK, dim 768 |
+| roberta_zinc_480m (`roberta-zinc-480m`) | entropy/roberta_zinc_480m @ 05b00ec3 | MIT (line "License: MIT" in the card; no license field in the HF metadata) | 409 MB (only model.safetensors is downloaded, without the duplicate .bin) | ZINC, date not stated: not verified | likewise | inference on 20 mol. OK, dim 768 |
 
-Не брались: Uni-Mol, GROVER (тяжёлые/3D, по заданию), ChemGPT-1.2B (4,9 ГБ, >500 МБ), seyonec/ChemBERTa-zinc-base-v1 (179 МБ, лицензия не указана; дублирует семейство ChemBERTa).
-Максимум одной загрузки: 409 МБ (<500 МБ). Суммарный кэш HF после всех проверок ~610 МБ в `~/.cache/huggingface` (в репозиторий не попадает; при нехватке места удалить).
+Not included: Uni-Mol, GROVER (heavy/3D, per the assignment), ChemGPT-1.2B (4.9 GB, >500 MB), seyonec/ChemBERTa-zinc-base-v1 (179 MB, license not stated; duplicates the ChemBERTa family).
+Maximum single download: 409 MB (<500 MB). Total HF cache after all checks ~610 MB in `~/.cache/huggingface` (does not go into the repository; delete if disk space runs low).
 
-## Как запускать
+## How to run
 ```
-pip install -e .            # torch, transformers, rdkit, sklearn уже стоят
-python scripts/06_embed_foundation.py                      # все модели -> data/embeddings/<ключ>.npz
-python scripts/06_embed_foundation.py --models molformer-xl-10pct --smoke 20   # проверка на 20 молекулах
+pip install -e .            # torch, transformers, rdkit, sklearn are already installed
+python scripts/06_embed_foundation.py                      # all models -> data/embeddings/<key>.npz
+python scripts/06_embed_foundation.py --models molformer-xl-10pct --smoke 20   # check on 20 molecules
 python scripts/04_run_benchmark.py --models ecfp_gbm gnn_dmpnn emb-chemberta-77m-mlm_gbm emb-molformer-xl-10pct_gbm
 ```
-`npz`: `mol_ids`, `X` (n x dim), `valid` (маска разобранных SMILES), `revision`, `repo`. Кэш: если файл есть, покрывает все
-mol_id и revision совпал, модель пропускается (`--force` пересчитывает). Эмбеддинги = mean-pooling `last_hidden_state`
-с маской внимания по канонизированным (RDKit) SMILES, батчи по длине, усечение 256 токенов, CPU, 4 потока, модели заморожены.
-Суффикс головы в имени (`_gbm`, `_rf`, `_mlp`, `_ridge`) выбирает sklearn-голову над эмбеддингом.
+`npz`: `mol_ids`, `X` (n x dim), `valid` (mask of parsed SMILES), `revision`, `repo`. Cache: if the file exists, covers all
+mol_id and the revision matches, the model is skipped (`--force` recomputes). Embeddings = mean-pooling of `last_hidden_state`
+with the attention mask over canonicalized (RDKit) SMILES, batches by length, truncation at 256 tokens, CPU, 4 threads, models frozen.
+The head suffix in the name (`_gbm`, `_rf`, `_mlp`, `_ridge`) selects the sklearn head on top of the embedding.
 
-## Интерфейс GNN
-`featurize("gnn_dmpnn", smiles, ids)` возвращает object-массив SMILES (а не матрицу), `make_model("gnn_dmpnn", seed)` даёт
-`DMPNNRegressor` с `fit(X_smiles, y)` / `predict`. scripts/04_run_benchmark.py менять не пришлось: `X[tr]` работает одинаково.
-D-MPNN: направленные рёбра, depth 3, hidden 200, dropout 0.1, mean-pooling по атомам, FFN; Adam lr 1e-3, батч 64, до 60 эпох;
-10% train — внутренняя валидация, ранняя остановка (patience 10) с возвратом лучших весов; цель стандартизуется по train.
-Детерминизм: `torch.manual_seed(seed)` + `np.random.default_rng(seed)` (тест: два обучения с одним сидом дают идентичные
-предсказания; CPU, 1 поток по умолчанию). Гиперпараметры не подбирались: по `experiment_design.md` (п. 2) бюджет подбора у GNN и
-ECFP-моделей должен быть одинаковым; это остаётся задачей до финального запуска.
+## GNN interface
+`featurize("gnn_dmpnn", smiles, ids)` returns an object array of SMILES (not a matrix), `make_model("gnn_dmpnn", seed)` returns
+`DMPNNRegressor` with `fit(X_smiles, y)` / `predict`. scripts/04_run_benchmark.py did not need changes: `X[tr]` works the same way.
+D-MPNN: directed edges, depth 3, hidden 200, dropout 0.1, mean-pooling over atoms, FFN; Adam lr 1e-3, batch 64, up to 60 epochs;
+10% of train is used as internal validation, early stopping (patience 10) restoring the best weights; the target is standardized on train.
+Determinism: `torch.manual_seed(seed)` + `np.random.default_rng(seed)` (test: two trainings with the same seed give identical
+predictions; CPU, 1 thread by default). Hyperparameters were not tuned: per `experiment_design.md` (item 2) the tuning budget for the GNN and
+the ECFP models must be the same; this remains a task before the final run.
 
-## Что проверено, что нет
-- Проверено: тесты `tests/test_models_gnn.py` без сети (граф, обратные рёбра, невалидный SMILES, детерминизм, обучаемость на 200
-  синтетических молекулах: корреляция > 0,5, ранняя остановка, маскированный mean-pooling на крошечной случайной RoBERTa,
-  кэш/featurize эмбеддингов); `pytest -q` — 36 passed.
-- Проверено: реальный инференс всех 5 моделей на 20 молекулах (с 1 заведомо невалидным SMILES); 200 синтетических молекул прогнаны
-  через scripts/06 (ChemBERTa-5M) и scripts/04 (ecfp_gbm, gnn_dmpnn, эмбеддинг+ridge, 3 сплита, 1 сид). Синтетические метки
-  ничего не говорят о качестве моделей.
-- Время D-MPNN: 2000 молекул, 10 эпох ≈ 14 с при загрузке машины ~15 (другие процессы на 4 ядрах); 60 эпох на 8 тыс. молекул оценочно
-  несколько минут на модель/сид/сплит. 5 сидов x 3 сплита x N задач x GNN — главная статья времени бенчмарка. На чистой машине не измерено.
-- Не проверено: лицензии DeepChem/ChemBERTa-*; даты отсечения всех предобученных корпусов; пересечение корпусов предобучения
-  (ZINC/PubChem/ChEMBL) с нашими молекулами (нужна деконтаминация, W-деконтаминация); качество на реальных данных проекта
-  (данных `data/processed` в момент проверки не было); влияние усечения 256 токенов (на длинных SMILES); эквивалентность
-  нашего D-MPNN реализации chemprop (код написан по описанию Yang et al. 2019, прямого сравнения нет).
-- Предупреждение: при высокой загрузке CPU torch с несколькими потоками замедляется на порядок; в GNN поэтому по умолчанию 1 поток
+## What is verified and what is not
+- Verified: tests `tests/test_models_gnn.py` without network (graph, reverse edges, invalid SMILES, determinism, learnability on 200
+  synthetic molecules: correlation > 0.5, early stopping, masked mean-pooling on a tiny random RoBERTa,
+  embedding cache/featurize); `pytest -q` — 36 passed.
+- Verified: real inference of all 5 models on 20 molecules (with 1 deliberately invalid SMILES); 200 synthetic molecules run
+  through scripts/06 (ChemBERTa-5M) and scripts/04 (ecfp_gbm, gnn_dmpnn, embedding+ridge, 3 splits, 1 seed). Synthetic labels
+  say nothing about model quality.
+- D-MPNN time: 2000 molecules, 10 epochs ≈ 14 s at a machine load of ~15 (other processes on 4 cores); 60 epochs on 8k molecules estimated
+  at several minutes per model/seed/split. 5 seeds x 3 splits x N tasks x GNN is the main time cost of the benchmark. Not measured on a clean machine.
+- Not verified: licenses of DeepChem/ChemBERTa-*; cutoff dates of all pretraining corpora; overlap of the pretraining corpora
+  (ZINC/PubChem/ChEMBL) with our molecules (decontamination is needed, W-decontamination); quality on the project's real data
+  (`data/processed` did not exist at the time of the check); the effect of truncation at 256 tokens (on long SMILES); equivalence
+  of our D-MPNN to the chemprop implementation (the code was written from the description in Yang et al. 2019, there is no direct comparison).
+- Warning: under high CPU load, multi-threaded torch slows down by an order of magnitude; the GNN therefore uses 1 thread by default
   (`n_threads`).
-- ChemBERTa: слой pooler отсутствует в чекпойнтах и инициализируется случайно, но не используется (берётся last_hidden_state).
+- ChemBERTa: the pooler layer is absent from the checkpoints and is initialized randomly, but is not used (last_hidden_state is taken).

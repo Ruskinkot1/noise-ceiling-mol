@@ -1,4 +1,4 @@
-"""Тесты stats.py / metrics.py на синтетике с известными ответами."""
+"""Tests of stats.py / metrics.py on synthetic data with known answers."""
 import numpy as np
 import pytest
 
@@ -23,7 +23,7 @@ def test_holm_and_bh_known_values():
 
 def test_cluster_bootstrap_ci_covers_and_clusters_matter():
     rng = np.random.default_rng(1)
-    # 100 молекул x 5 строк с общим смещением внутри молекулы: кластерный ДИ шире наивного
+    # 100 molecules x 5 rows with a shared offset within each molecule: the cluster CI is wider than the naive one
     mu = rng.normal(0, 1, 100)
     ids = np.repeat(np.arange(100), 5)
     x = mu[ids] + rng.normal(0, 0.1, 500)
@@ -55,37 +55,37 @@ def test_frac_ceiling_known_values():
 
 
 def test_ideal_model_hits_ceiling_and_ci_contains_it():
-    """Модель = истинное значение: RMSE на шумной метке ≈ floor, доля потолка ≈ 1."""
+    """Model = true value: RMSE on the noisy label ≈ floor, fraction of ceiling ≈ 1."""
     sigma, docs = 0.6, 2
     rng, t, y, nd = _data(n=3000, sigma=sigma, docs=docs)
-    ytm = np.zeros_like(y)  # «среднее по train» = истинное среднее 0
+    ytm = np.zeros_like(y)  # "train mean" = true mean 0
     est, lo, hi, _ = stats.frac_ceiling_ci(y, t, ytm, nd, np.arange(len(y)), sigma, n_boot=300)
     assert abs(est - 1) < 0.05 and lo < 1.0 < hi + 0.05
-    # предсказание = среднее -> 0
+    # prediction = mean -> 0
     est0, *_ = stats.frac_ceiling_ci(y, ytm, ytm, nd, np.arange(len(y)), sigma, n_boot=50)
     assert abs(est0) < 1e-9
 
 
 def test_attenuation_correction_recovers_true_error():
-    """Шум метки завышает RMSE: sqrt(rmse_obs^2 - floor^2) ≈ истинная ошибка модели."""
+    """Label noise inflates RMSE: sqrt(rmse_obs^2 - floor^2) ≈ true model error."""
     sigma, docs, n = 0.8, 1, 20000
     rng = np.random.default_rng(3)
     t = rng.normal(0, 1, n)
     y = t + rng.normal(0, sigma, n)
-    pred = t + rng.normal(0, 0.3, n)  # истинная ошибка 0.3
+    pred = t + rng.normal(0, 0.3, n)  # true error 0.3
     rmse = np.sqrt(np.mean((y - pred) ** 2))
     mean_rmse = np.sqrt(np.mean((y - 0) ** 2))
     floor = metrics.rmse_floor(sigma, 1.0 / docs)
     a = metrics.attenuation_corrected(rmse, mean_rmse, floor)
     assert abs(a["rmse_true"] - 0.3) < 0.02
-    assert abs(a["rmse_mean_true"] - 1.0) < 0.03  # sd истинных значений = 1
+    assert abs(a["rmse_mean_true"] - 1.0) < 0.03  # sd of the true values = 1
     assert not a["below_floor"]
-    # надёжность и дезаттенюация: corr(y,t) = 1/sqrt(1+0.64) -> r_true = 1
+    # reliability and disattenuation: corr(y,t) = 1/sqrt(1+0.64) -> r_true = 1
     rel = metrics.reliability(np.var(y), floor**2)
     assert rel == pytest.approx(1 / 1.64, abs=0.03)
     r_obs = np.corrcoef(y, t)[0, 1]
     assert metrics.disattenuated_corr(r_obs, rel) == pytest.approx(1.0, abs=0.03)
-    # R2 относительно истинных: 1 - 0.09/1
+    # R2 relative to the true values: 1 - 0.09/1
     mse = np.mean((y - pred) ** 2)
     assert metrics.r2_corrected(mse, np.var(y), floor) == pytest.approx(1 - 0.09, abs=0.03)
 
@@ -99,16 +99,16 @@ def test_paired_bootstrap_detects_real_difference_and_null():
     n = 1500
     t = rng.normal(0, 1, n)
     y = t + rng.normal(0, 0.3, n)
-    a = t + rng.normal(0, 0.2, n)      # лучше
-    b = t + rng.normal(0, 0.5, n)      # хуже
-    c = t + rng.normal(0, 0.5, n)      # такой же, как b, другая реализация
+    a = t + rng.normal(0, 0.2, n)      # better
+    b = t + rng.normal(0, 0.5, n)      # worse
+    c = t + rng.normal(0, 0.5, n)      # same as b, different realization
     ids = np.arange(n)
     rm = lambda p: (lambda i: np.sqrt(np.mean((y[i] - p[i]) ** 2)))
     r = stats.paired_diff_ci(rm(a), rm(b), ids, n_boot=300)
-    assert r["hi"] < 0 and not r["inside_noise"] and stats.slice_flag(r["lo"], r["hi"]) == "модель лучше"
+    assert r["hi"] < 0 and not r["inside_noise"] and stats.slice_flag(r["lo"], r["hi"]) == "model better"
     r0 = stats.paired_diff_ci(rm(b), rm(c), ids, n_boot=300)
-    assert r0["inside_noise"] and stats.slice_flag(r0["lo"], r0["hi"]) == "внутри шума"
-    # парность: разность на одинаковых ресэмплах -> ДИ уже, чем у разности независимых ресэмплов
+    assert r0["inside_noise"] and stats.slice_flag(r0["lo"], r0["hi"]) == "within noise"
+    # pairing: difference on identical resamples -> CI narrower than for the difference of independent resamples
     assert (r0["hi"] - r0["lo"]) < 0.1
 
 
@@ -122,7 +122,7 @@ def test_type_i_error_of_paired_bootstrap_roughly_nominal():
         r = stats.paired_diff_ci(lambda i: np.sqrt(np.mean((y[i] - a[i]) ** 2)),
                                  lambda i: np.sqrt(np.mean((y[i] - b[i]) ** 2)), ids, n_boot=150, seed=k)
         rej += not r["inside_noise"]
-    assert rej / reps < 0.2  # номинально 0.05; широкий допуск из-за малого reps
+    assert rej / reps < 0.2  # nominal 0.05; wide tolerance because reps is small
 
 
 def test_wilcoxon_tasks():
@@ -134,7 +134,7 @@ def test_wilcoxon_tasks():
 
 
 def test_mde_model_matches_simulation():
-    """Гауссова формула MDE: SE разности RMSE из симуляции ≈ теоретическая."""
+    """Gaussian MDE formula: SE of the RMSE difference from simulation ≈ theoretical."""
     rng = np.random.default_rng(6)
     n, v, rho, s = 400, 0.25, 0.7, 0.5
     cov = v * np.array([[1, rho], [rho, 1]])
@@ -161,12 +161,12 @@ def test_mde_monotone_in_noise_and_n():
 def test_tanimoto_and_cliffs():
     fp = np.array([[1, 1, 1, 1, 0, 0],
                    [1, 1, 1, 0, 0, 0],   # T(0,1)=3/4
-                   [0, 0, 0, 0, 1, 1],   # T=0 с остальными
+                   [0, 0, 0, 0, 1, 1],   # T=0 with the rest
                    [1, 1, 1, 1, 0, 0]], float)
     S = stats.tanimoto_matrix(fp, fp)
     assert S[0, 1] == pytest.approx(0.75) and S[0, 2] == 0 and S[0, 3] == 1
     y = np.array([5.0, 8.0, 5.0, 5.2])
-    # (0,1): sim .75, |Δ|=3 ; (1,3): sim .75, |Δ|=2.8 ; (0,3): sim 1, Δ=.2 -> не обрыв
+    # (0,1): sim .75, |Δ|=3 ; (1,3): sim .75, |Δ|=2.8 ; (0,3): sim 1, Δ=.2 -> not a cliff
     pr = stats.cliff_pairs(fp, y, sim_min=0.7, delta_min=1.5)
     assert {tuple(x) for x in pr} == {(0, 1), (1, 3)}
     assert len(stats.cliff_pairs(fp, y, sim_min=0.8, delta_min=1.5)) == 0
@@ -182,12 +182,12 @@ def test_cliff_pair_metrics():
     good = stats.cliff_pair_metrics(pairs, y, y)
     assert good["sign_acc"] == 1 and good["rmse_delta"] == 0
     flat = stats.cliff_pair_metrics(pairs, y, np.full(4, 6.5))
-    assert flat["rmse_delta"] == pytest.approx(3.0)  # плоская модель не видит обрыва
+    assert flat["rmse_delta"] == pytest.approx(3.0)  # the flat model does not see the cliff
     assert stats.cliff_pair_metrics(np.empty((0, 2), int), y, y)["n_pairs"] == 0
 
 
 def test_p_noise_exceeds():
-    # sigma=1, n=1 обоим: sd разности = sqrt2; P(|N|>=1.96*sqrt2) = 0.05
+    # sigma=1, n=1 for both: sd of the difference = sqrt2; P(|N|>=1.96*sqrt2) = 0.05
     assert stats.p_noise_exceeds(1.96 * np.sqrt(2), 1.0) == pytest.approx(0.05, abs=1e-3)
     assert stats.p_noise_exceeds(2.0, 0.5, 4, 4) < stats.p_noise_exceeds(2.0, 0.5, 1, 1)
 

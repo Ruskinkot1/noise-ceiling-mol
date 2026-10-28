@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""Шаг 2. Стандартизация структур, единицы (pChEMBL уже в -log10 M), пометка источников.
+"""Step 2. Structure standardization, units (pChEMBL is already in -log10 M), source tagging.
 
-Выход для каждой задачи (мишень x тип измерения):
-  data/processed/<target>_<type>.measurements.csv : mol_id, smiles, doc_id, assay_id, year, y   (по измерению)
-  data/processed/<target>_<type>.molecules.csv    : mol_id, smiles, y (среднее по документам), n_docs, first_year
-  data/processed/tasks.csv                        : сводка и флаг passes (>= min_replicated_mols)
+Output for each task (target x measurement type):
+  data/processed/<target>_<type>.measurements.csv : mol_id, smiles, doc_id, assay_id, year, y   (per measurement)
+  data/processed/<target>_<type>.molecules.csv    : mol_id, smiles, y (mean over documents), n_docs, first_year
+  data/processed/tasks.csv                        : summary and the passes flag (>= min_replicated_mols)
 """
 import argparse
 from pathlib import Path
@@ -40,7 +40,7 @@ def main():
                 continue
             m = pd.DataFrame({"mol_id": g["mol_id"], "smiles": g["smiles"], "doc_id": g["doc_chembl_id"],
                               "assay_id": g["assay_chembl_id"], "year": g["doc_year"], "y": g["pchembl_value"]})
-            # одно значение на (молекула, документ): среднее по повторам внутри документа
+            # one value per (molecule, document): mean over replicates within the document
             d = m.groupby(["mol_id", "doc_id"], as_index=False).agg(
                 smiles=("smiles", "first"), year=("year", "first"), y=("y", "mean"))
             mols = d.groupby("mol_id").agg(smiles=("smiles", "first"), y=("y", "mean"),
@@ -55,7 +55,7 @@ def main():
     s = pd.DataFrame(summary)
     s.to_csv(out / "tasks.csv", index=False)
     print(s.to_string(index=False))
-    print(f"\nзадач проходит порог: {int(s['passes'].sum())} (нужно >= 15, критерий остановки нед. 3)")
+    print(f"\ntasks pass the threshold: {int(s['passes'].sum())} (need >= 15, week 3 stopping criterion)")
 
 
 if __name__ == "__main__":

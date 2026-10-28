@@ -1,9 +1,9 @@
-"""Статистика сравнения моделей (W6): кластерный бутстрэп по молекулам, парные сравнения,
-поправки на множественность, MDE, activity cliffs.
+"""Model comparison statistics (W6): cluster bootstrap over molecules, paired comparisons,
+multiplicity corrections, MDE, activity cliffs.
 
-Единица ресэмплинга — МОЛЕКУЛА (кластер): одна и та же молекула встречается в тесте нескольких сидов
-и в нескольких моделях, строки не независимы. Все функции принимают векторы одинаковой длины
-(по строке = молекула в тесте одного сида) и вектор идентификаторов молекул `mol_ids`.
+The resampling unit is the MOLECULE (cluster): the same molecule appears in the test set of several seeds
+and in several models, so rows are not independent. All functions take vectors of equal length
+(one row = a molecule in the test set of one seed) and a vector of molecule identifiers `mol_ids`.
 """
 from __future__ import annotations
 
@@ -15,12 +15,12 @@ from scipy.stats import norm, rankdata, wilcoxon
 from .metrics import frac_ceiling
 
 # --------------------------------------------------------------------------------------------
-# Кластерный бутстрэп
+# Cluster bootstrap
 # --------------------------------------------------------------------------------------------
 
 
 def cluster_index(cluster_ids) -> list[np.ndarray]:
-    """Список индексов строк по кластерам (порядок кластеров — по первому появлению)."""
+    """List of row indices per cluster (cluster order = by first appearance)."""
     ids = np.asarray(cluster_ids)
     _, inv = np.unique(ids, return_inverse=True)
     order = np.argsort(inv, kind="stable")
@@ -30,9 +30,9 @@ def cluster_index(cluster_ids) -> list[np.ndarray]:
 
 def cluster_bootstrap(cluster_ids, stat_fn: Callable[[np.ndarray], object], n_boot: int = 1000,
                       seed: int = 0) -> np.ndarray:
-    """Бутстрэп кластеров с возвращением. stat_fn(idx) -> число или вектор; idx — индексы строк
-    выборки (кластеры склеены, повторные кластеры входят повторно). Возвращает (n_boot, k).
-    Один и тот же seed при одном и том же cluster_ids даёт те же ресэмплы -> парность."""
+    """Cluster bootstrap with replacement. stat_fn(idx) -> number or vector; idx = row indices of the
+    sample (clusters concatenated; repeated clusters are included repeatedly). Returns (n_boot, k).
+    The same seed with the same cluster_ids gives the same resamples -> pairing."""
     groups = cluster_index(cluster_ids)
     g = len(groups)
     rng = np.random.default_rng(seed)
@@ -45,7 +45,7 @@ def cluster_bootstrap(cluster_ids, stat_fn: Callable[[np.ndarray], object], n_bo
 
 
 def percentile_ci(draws, alpha: float = 0.05):
-    """Процентильный (1-alpha) ДИ по столбцам draws. NaN игнорируются."""
+    """Percentile (1-alpha) CI over the columns of draws. NaNs are ignored."""
     d = np.asarray(draws, float)
     lo, hi = np.nanpercentile(d, [100 * alpha / 2, 100 * (1 - alpha / 2)], axis=0)
     return lo, hi
@@ -71,7 +71,7 @@ METRIC_NAMES = ["rmse", "mae", "r2", "spearman"]
 
 
 def metrics_ci(y, pred, mol_ids, n_boot: int = 1000, alpha: float = 0.05, seed: int = 0) -> dict:
-    """RMSE, MAE, R², Spearman с кластерным (по молекулам) ДИ. Возвращает {name: (оценка, lo, hi)}."""
+    """RMSE, MAE, R², Spearman with a cluster (by molecule) CI. Returns {name: (estimate, lo, hi)}."""
     y, pred = np.asarray(y, float), np.asarray(pred, float)
     est = _metrics_vec(y, pred)
     draws = cluster_bootstrap(mol_ids, lambda i: _metrics_vec(y[i], pred[i]), n_boot, seed)
@@ -84,8 +84,8 @@ def _rmse(y, p):
 
 
 def frac_ceiling_stat(y, pred, y_train_mean, n_docs, sigma, idx=None) -> float:
-    """Доля потолка по строкам idx: rmse_mean — RMSE предсказания «среднее по train» (y_train_mean
-    для каждой строки — среднее train своего сида); RMSE_floor = sigma*sqrt(mean(1/n_docs))."""
+    """Fraction of the ceiling over rows idx: rmse_mean is the RMSE of the "train mean" prediction (y_train_mean
+    for each row is the train mean of its own seed); RMSE_floor = sigma*sqrt(mean(1/n_docs))."""
     if idx is not None:
         y, pred, y_train_mean, n_docs = y[idx], pred[idx], y_train_mean[idx], n_docs[idx]
     floor = float(sigma) * float(np.sqrt(np.mean(1.0 / n_docs)))
@@ -94,9 +94,9 @@ def frac_ceiling_stat(y, pred, y_train_mean, n_docs, sigma, idx=None) -> float:
 
 def frac_ceiling_ci(y, pred, y_train_mean, n_docs, mol_ids, sigma, sigma_draws=None, n_boot: int = 1000,
                     alpha: float = 0.05, seed: int = 0):
-    """Доля потолка с кластерным ДИ. sigma фиксирована; если задан sigma_draws (бутстрэп-выборка sigma из
-    scripts/03), на каждой итерации берётся случайная sigma, и ДИ учитывает неопределённость потолка.
-    Возвращает (оценка, lo, hi, draws)."""
+    """Fraction of the ceiling with a cluster CI. sigma is fixed; if sigma_draws is given (a bootstrap sample of sigma from
+    scripts/03), a random sigma is taken at each iteration, and the CI accounts for the uncertainty of the ceiling.
+    Returns (estimate, lo, hi, draws)."""
     y, pred = np.asarray(y, float), np.asarray(pred, float)
     ytm, nd = np.asarray(y_train_mean, float), np.asarray(n_docs, float)
     est = frac_ceiling_stat(y, pred, ytm, nd, sigma)
@@ -114,9 +114,9 @@ def frac_ceiling_ci(y, pred, y_train_mean, n_docs, mol_ids, sigma, sigma_draws=N
 
 def paired_diff_ci(stat_a: Callable[[np.ndarray], float], stat_b: Callable[[np.ndarray], float], mol_ids,
                    n_boot: int = 1000, alpha: float = 0.05, seed: int = 0) -> dict:
-    """Парный кластерный бутстрэп разности stat_a - stat_b: оба считаются на ОДНИХ И ТЕХ ЖЕ ресэмплах
-    молекул. Возвращает diff, lo, hi, p_boot (двусторонняя доля ресэмплов по другую сторону нуля),
-    inside_noise (ДИ содержит 0)."""
+    """Paired cluster bootstrap of the difference stat_a - stat_b: both are computed on the SAME resamples
+    of molecules. Returns diff, lo, hi, p_boot (two-sided fraction of resamples on the other side of zero),
+    inside_noise (the CI contains 0)."""
     n = len(np.asarray(mol_ids))
     full = np.arange(n)
     est = float(stat_a(full) - stat_b(full))
@@ -129,14 +129,14 @@ def paired_diff_ci(stat_a: Callable[[np.ndarray], float], stat_b: Callable[[np.n
 
 
 # --------------------------------------------------------------------------------------------
-# Сравнение по задачам: Уилкоксон + поправки на множественность
+# Per-task comparison: Wilcoxon + multiplicity corrections
 # --------------------------------------------------------------------------------------------
 
 
 def wilcoxon_tasks(delta, min_tasks: int = 6) -> dict:
-    """Знаковых рангов Уилкоксона по задачам для разностей delta (модель - базовая). Двусторонний.
-    При n < min_tasks или всех нулях p = NaN: при n=5 минимальный двусторонний p = 0.0625 > 0.05,
-    значимость недостижима, поэтому тест не выдаётся."""
+    """Wilcoxon signed-rank test over tasks for differences delta (model - baseline). Two-sided.
+    For n < min_tasks or all zeros, p = NaN: at n=5 the minimum two-sided p = 0.0625 > 0.05,
+    so significance is unattainable and the test is not reported."""
     d = np.asarray(delta, float)
     d = d[np.isfinite(d)]
     out = {"n_tasks": int(len(d)), "mean_diff": float(d.mean()) if len(d) else np.nan,
@@ -148,7 +148,7 @@ def wilcoxon_tasks(delta, min_tasks: int = 6) -> dict:
 
 
 def holm(pvals) -> np.ndarray:
-    """Поправка Холма (контроль FWER). NaN сохраняются и в число сравнений не входят."""
+    """Holm correction (FWER control). NaNs are preserved and do not count toward the number of comparisons."""
     p = np.asarray(pvals, float)
     out = np.full_like(p, np.nan)
     ok = np.isfinite(p)
@@ -164,7 +164,7 @@ def holm(pvals) -> np.ndarray:
 
 
 def benjamini_hochberg(pvals) -> np.ndarray:
-    """Поправка Бенджамини-Хохберга (контроль FDR). NaN сохраняются."""
+    """Benjamini-Hochberg correction (FDR control). NaNs are preserved."""
     p = np.asarray(pvals, float)
     out = np.full_like(p, np.nan)
     ok = np.isfinite(p)
@@ -180,29 +180,29 @@ def benjamini_hochberg(pvals) -> np.ndarray:
 
 
 # --------------------------------------------------------------------------------------------
-# MDE: минимальная обнаружимая разность
+# MDE: minimum detectable difference
 # --------------------------------------------------------------------------------------------
 
 
 def mde_from_se(se, alpha: float = 0.05, power: float = 0.8):
-    """MDE = (z_{1-alpha/2} + z_power) * SE разности (нормальное приближение)."""
+    """MDE = (z_{1-alpha/2} + z_power) * SE of the difference (normal approximation)."""
     return (norm.ppf(1 - alpha / 2) + norm.ppf(power)) * np.asarray(se, float)
 
 
 def var_sqerr_diff(v_err, rho, noise_var) -> float:
-    """Дисперсия d_i = e_a,i^2 - e_b,i^2 при H0 (равные модели) в гауссовой модели.
-    e_k = u_k + eps; Var(u_a)=Var(u_b)=v_err, corr(u_a,u_b)=rho, eps — общий шум метки, Var(eps)=noise_var.
-    d = (u_a - u_b)(u_a + u_b + 2 eps); множители независимы -> Var(d) = Var(D) Var(S) =
+    """Variance of d_i = e_a,i^2 - e_b,i^2 under H0 (equal models) in a Gaussian model.
+    e_k = u_k + eps; Var(u_a)=Var(u_b)=v_err, corr(u_a,u_b)=rho, eps is the shared label noise, Var(eps)=noise_var.
+    d = (u_a - u_b)(u_a + u_b + 2 eps); the factors are independent -> Var(d) = Var(D) Var(S) =
     2 v (1 - rho) * (2 v (1 + rho) + 4 noise_var)."""
     return 2 * v_err * (1 - rho) * (2 * v_err * (1 + rho) + 4 * noise_var)
 
 
 def mde_rmse_gaussian(n_test, rmse_floor, v_err, rho=0.8, alpha: float = 0.05, power: float = 0.8):
-    """MDE разности RMSE двух моделей как функция числа тест-молекул и шума метки (rmse_floor).
-    v_err — дисперсия «истинной» ошибки модели (RMSE_true^2); rho — корреляция ошибок двух моделей
-    (у ECFP-моделей обычно высокая, но здесь это ПАРАМЕТР, не измерение; оценить из predictions.csv).
-    Дельта-метод: dRMSE ≈ dMSE / (2 RMSE_obs), RMSE_obs^2 = v_err + floor^2.
-    Модельная оценка при допущениях гауссовости и независимости шума и ошибок."""
+    """MDE of the RMSE difference between two models as a function of the number of test molecules and label noise (rmse_floor).
+    v_err is the variance of the model's "true" error (RMSE_true^2); rho is the correlation of the two models' errors
+    (usually high for ECFP models, but here it is a PARAMETER, not a measurement; estimate it from predictions.csv).
+    Delta method: dRMSE ≈ dMSE / (2 RMSE_obs), RMSE_obs^2 = v_err + floor^2.
+    Model-based estimate under the assumptions of Gaussianity and independence of noise and errors."""
     noise_var = np.asarray(rmse_floor, float) ** 2
     var_d = var_sqerr_diff(v_err, rho, noise_var)
     se_mse = np.sqrt(var_d / np.asarray(n_test, float))
@@ -211,17 +211,17 @@ def mde_rmse_gaussian(n_test, rmse_floor, v_err, rho=0.8, alpha: float = 0.05, p
 
 
 def mde_frac_units(mde_rmse, rmse_mean, rmse_floor):
-    """Перевод MDE по RMSE в единицы доли потолка: делим на (RMSE_mean - RMSE_floor)."""
+    """Convert the RMSE MDE into units of fraction of the ceiling: divide by (RMSE_mean - RMSE_floor)."""
     return np.asarray(mde_rmse, float) / (np.asarray(rmse_mean, float) - np.asarray(rmse_floor, float))
 
 
 # --------------------------------------------------------------------------------------------
-# Сходство и activity cliffs
+# Similarity and activity cliffs
 # --------------------------------------------------------------------------------------------
 
 
 def tanimoto_matrix(A, B) -> np.ndarray:
-    """Танимото для бинарных отпечатков (строки). float32 (|A|,|B|)."""
+    """Tanimoto for binary fingerprints (rows). float32 (|A|,|B|)."""
     A = (np.asarray(A) > 0).astype(np.float32)
     B = (np.asarray(B) > 0).astype(np.float32)
     inter = A @ B.T
@@ -232,7 +232,7 @@ def tanimoto_matrix(A, B) -> np.ndarray:
 
 
 def max_tanimoto_to_train(fp_test, fp_train, chunk: int = 512) -> np.ndarray:
-    """Для каждой тест-молекулы — максимальное Танимото к train."""
+    """For each test molecule, the maximum Tanimoto to train."""
     out = np.empty(len(fp_test), np.float32)
     for s in range(0, len(fp_test), chunk):
         out[s:s + chunk] = tanimoto_matrix(fp_test[s:s + chunk], fp_train).max(axis=1)
@@ -240,8 +240,8 @@ def max_tanimoto_to_train(fp_test, fp_train, chunk: int = 512) -> np.ndarray:
 
 
 def cliff_pairs(fp, y, sim_min: float = 0.8, delta_min: float = 1.5) -> np.ndarray:
-    """Пары (i<j) внутри набора: Tanimoto(ECFP4) >= sim_min и |y_i - y_j| >= delta_min.
-    Пороги — ПАРАМЕТРЫ (умолчания 0.8 и 1.5 лог-единиц — условные, не подбирались). Возвращает (k,2)."""
+    """Pairs (i<j) within the set: Tanimoto(ECFP4) >= sim_min and |y_i - y_j| >= delta_min.
+    Thresholds are PARAMETERS (defaults 0.8 and 1.5 log units are nominal, not tuned). Returns (k,2)."""
     y = np.asarray(y, float)
     S = tanimoto_matrix(fp, fp)
     D = np.abs(y[:, None] - y[None, :])
@@ -251,8 +251,8 @@ def cliff_pairs(fp, y, sim_min: float = 0.8, delta_min: float = 1.5) -> np.ndarr
 
 def cliff_mask_vs_train(fp_test, y_test, fp_train, y_train, sim_min: float = 0.8, delta_min: float = 1.5,
                         chunk: int = 512) -> np.ndarray:
-    """Булев вектор по тест-молекулам: есть сосед в train с Tanimoto >= sim_min и |Δy| >= delta_min
-    («cliff-молекулы»: модель, опираясь на соседа, ошибается систематически)."""
+    """Boolean vector over test molecules: there is a neighbour in train with Tanimoto >= sim_min and |Δy| >= delta_min
+    ("cliff molecules": a model relying on the neighbour errs systematically)."""
     y_test, y_train = np.asarray(y_test, float), np.asarray(y_train, float)
     out = np.zeros(len(fp_test), bool)
     for s in range(0, len(fp_test), chunk):
@@ -263,7 +263,7 @@ def cliff_mask_vs_train(fp_test, y_test, fp_train, y_train, sim_min: float = 0.8
 
 
 def cliff_pair_metrics(pairs, y, pred) -> dict:
-    """Метрики на парах: верно ли предсказан знак Δ (sign_acc) и RMSE разности Δ (rmse_delta)."""
+    """Metrics on pairs: whether the sign of Δ is predicted correctly (sign_acc) and the RMSE of the difference Δ (rmse_delta)."""
     if len(pairs) == 0:
         return {"n_pairs": 0, "sign_acc": np.nan, "rmse_delta": np.nan}
     y, pred = np.asarray(y, float), np.asarray(pred, float)
@@ -274,35 +274,35 @@ def cliff_pair_metrics(pairs, y, pred) -> dict:
 
 
 def p_noise_exceeds(delta, sigma, n_i=1, n_j=1) -> float:
-    """P(|шум разности меток| >= delta) для пары молекул, шум N(0, sigma^2 (1/n_i + 1/n_j)).
-    Сколько «обрывов» ожидается из-за одного шума; допущение гауссовости — приближение."""
+    """P(|label difference noise| >= delta) for a pair of molecules, noise N(0, sigma^2 (1/n_i + 1/n_j)).
+    How many "cliffs" are expected from noise alone; the Gaussian assumption is an approximation."""
     s = float(sigma) * np.sqrt(1.0 / np.asarray(n_i, float) + 1.0 / np.asarray(n_j, float))
     return 2 * norm.sf(float(delta) / s)
 
 
 def slice_flag(lo: float, hi: float, lower_is_better: bool = True) -> str:
-    """Пометка разреза по ДИ разности (модель - базовая): «внутри шума», если ДИ содержит 0.
-    lower_is_better=True для ошибок (RMSE: разность < 0 = модель лучше); False для доли потолка."""
+    """Label for a slice by the CI of the difference (model - baseline): "inside noise" if the CI contains 0.
+    lower_is_better=True for errors (RMSE: difference < 0 = model is better); False for fraction of the ceiling."""
     if not (np.isfinite(lo) and np.isfinite(hi)):
-        return "нет данных"
+        return "no data"
     if lo <= 0 <= hi:
-        return "внутри шума"
+        return "within noise"
     better = (hi < 0) if lower_is_better else (lo > 0)
-    return "модель лучше" if better else "модель хуже"
+    return "model better" if better else "model worse"
 
 
 # --------------------------------------------------------------------------------------------
-# Загрузка предсказаний (схема results/predictions.csv, см. docs/experiment_design.md)
+# Loading predictions (schema of results/predictions.csv, see docs/experiment_design.md)
 # --------------------------------------------------------------------------------------------
 PRED_REQUIRED = ["task", "split", "seed", "model", "mol_id", "pred"]
 
 
 def load_predictions(results_dir, processed_dir):
-    """Читает results/predictions.(parquet|csv): task, split, seed, model, mol_id, pred
-    [+ y, n_docs, y_train_mean — если нет, достраиваются]. y и n_docs берутся из
-    <processed>/<task>.molecules.csv; y_train_mean (среднее y по train своего сплита и сида)
-    пересчитывается тем же сплитом (ncmol.splits; сплиты детерминированы по сиду) — требует,
-    чтобы molecules.csv был тем же файлом, что читал scripts/04. Если файла нет — None."""
+    """Reads results/predictions.(parquet|csv): task, split, seed, model, mol_id, pred
+    [+ y, n_docs, y_train_mean -- if absent, they are reconstructed]. y and n_docs are taken from
+    <processed>/<task>.molecules.csv; y_train_mean (mean y over the train of its split and seed)
+    is recomputed with the same split (ncmol.splits; splits are deterministic by seed) -- requires
+    molecules.csv to be the same file that scripts/04 read. If the file is missing -> None."""
     from pathlib import Path
 
     import pandas as pd
@@ -314,7 +314,7 @@ def load_predictions(results_dir, processed_dir):
     if pq.exists():
         try:
             p = pd.read_parquet(pq)
-        except Exception:  # нет pyarrow/fastparquet
+        except Exception:  # no pyarrow/fastparquet
             p = pd.read_csv(csv) if csv.exists() else None
     elif csv.exists():
         p = pd.read_csv(csv)
@@ -324,7 +324,7 @@ def load_predictions(results_dir, processed_dir):
         return None
     miss = [c for c in PRED_REQUIRED if c not in p.columns]
     if miss:
-        raise ValueError(f"predictions: нет столбцов {miss}")
+        raise ValueError(f"predictions: missing columns {miss}")
     parts = []
     for t, g in p.groupby("task"):
         mol = pd.read_csv(pdir / f"{t}.molecules.csv")
@@ -343,9 +343,9 @@ def load_predictions(results_dir, processed_dir):
 
 
 def wide_by_model(g, models):
-    """g — предсказания одной (task, split). Возвращает (base_df, P) где base_df — столбцы
-    seed, mol_id, y, n_docs, y_train_mean (по строке = молекула в тесте сида), P — (n, len(models))
-    предсказания; берётся пересечение ключей (seed, mol_id) по всем моделям."""
+    """g is the predictions of one (task, split). Returns (base_df, P) where base_df has columns
+    seed, mol_id, y, n_docs, y_train_mean (one row = a molecule in the test set of a seed), P is (n, len(models))
+    predictions; the intersection of (seed, mol_id) keys across all models is used."""
     piv = g.pivot_table(index=["seed", "mol_id"], columns="model", values="pred", aggfunc="first")
     models = [m for m in models if m in piv.columns]
     piv = piv[models].dropna()
@@ -355,7 +355,7 @@ def wide_by_model(g, models):
 
 
 def frac_ceiling_multi(idx, y, P, ytm, nd, sigma) -> np.ndarray:
-    """Доля потолка для всех столбцов P на строках idx (один и тот же floor и rmse_mean)."""
+    """Fraction of the ceiling for all columns of P over rows idx (the same floor and rmse_mean)."""
     y, P, ytm, nd = y[idx], P[idx], ytm[idx], nd[idx]
     floor = float(sigma) * float(np.sqrt(np.mean(1.0 / nd)))
     rm = _rmse(y, ytm)

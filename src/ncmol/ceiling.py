@@ -1,13 +1,13 @@
-"""Потолок шума по повторным измерениям из РАЗНЫХ документов.
+"""Noise ceiling from replicate measurements from DIFFERENT documents.
 
-Модель: y_ij = t_i + e_ij, e_ij ~ (0, s2) — шум «между документами» (лаборатория, условия анализа,
-ошибки записи). s2 оценивается как объединённая внутримолекулярная дисперсия:
+Model: y_ij = t_i + e_ij, e_ij ~ (0, s2) -- "between-document" noise (laboratory, assay conditions,
+recording errors). s2 is estimated as the pooled within-molecule variance:
     s2 = sum_i sum_j (y_ij - ybar_i)^2 / sum_i (n_i - 1).
-Это оценка ВСЕЙ межисточниковой изменчивости, а не «чистой» ошибки прибора; предполагается
-гомоскедастичность и что реплицированные молекулы типичны для набора (оба допущения проверяются
-в scripts/03 и описываются в статье как ограничения).
+This estimates ALL between-source variability, not the "pure" instrument error; it assumes
+homoscedasticity and that replicated molecules are typical of the dataset (both assumptions are checked
+in scripts/03 and described in the paper as limitations).
 
-Если метка для моделирования = среднее по n_i документам, то её дисперсия шума s2/n_i, и
+If the modelling label = mean over n_i documents, then its noise variance is s2/n_i, and
     RMSE_floor = sqrt(s2 * mean(1/n_i)),   R2_max = 1 - s2*mean(1/n_i) / Var(y).
 """
 from __future__ import annotations
@@ -20,10 +20,10 @@ import pandas as pd
 
 @dataclass
 class Ceiling:
-    n_mols_rep: int          # молекул с >= min_docs документами
+    n_mols_rep: int          # molecules with >= min_docs documents
     n_meas_rep: int
-    sigma: float             # sqrt(s2), единицы pChEMBL
-    var_y: float             # дисперсия меток по всему набору
+    sigma: float             # sqrt(s2), pChEMBL units
+    var_y: float             # variance of labels over the whole dataset
     rmse_floor: float
     r2_max: float
     mae_floor: float
@@ -33,13 +33,13 @@ class Ceiling:
 
 
 def doc_level(df: pd.DataFrame) -> pd.DataFrame:
-    """Одно значение на пару (молекула, документ): среднее внутри документа.
-    Столбцы: mol_id, doc_id, y."""
+    """One value per (molecule, document) pair: the mean within the document.
+    Columns: mol_id, doc_id, y."""
     return df.groupby(["mol_id", "doc_id"], as_index=False)["y"].mean()
 
 
 def pooled_variance(d: pd.DataFrame, min_docs: int = 2, max_abs_pair_diff: float | None = None):
-    """Возвращает (s2, n_mols, n_meas). d — результат doc_level."""
+    """Returns (s2, n_mols, n_meas). d is the result of doc_level."""
     g = d.groupby("mol_id")["y"]
     n = g.transform("size")
     d = d[n >= min_docs]
@@ -54,14 +54,14 @@ def pooled_variance(d: pd.DataFrame, min_docs: int = 2, max_abs_pair_diff: float
 
 
 def label_noise_factor(d: pd.DataFrame) -> float:
-    """mean(1/n_i) по молекулам набора (для метки = среднее по документам)."""
+    """mean(1/n_i) over the dataset molecules (for label = mean over documents)."""
     n = d.groupby("mol_id").size()
     return float((1.0 / n).mean())
 
 
 def estimate_ceiling(df: pd.DataFrame, min_docs: int = 2, max_abs_pair_diff: float | None = 3.0,
                      mean_label: bool = True) -> Ceiling:
-    """df: столбцы mol_id, doc_id, y (сырые измерения)."""
+    """df: columns mol_id, doc_id, y (raw measurements)."""
     d = doc_level(df)
     s2, n_mols, n_meas = pooled_variance(d, min_docs, max_abs_pair_diff)
     mols = d.groupby("mol_id")["y"].mean()
@@ -78,8 +78,8 @@ def estimate_ceiling(df: pd.DataFrame, min_docs: int = 2, max_abs_pair_diff: flo
 
 def bootstrap_ceiling(df: pd.DataFrame, n_boot: int = 1000, seed: int = 0, min_docs: int = 2,
                       max_abs_pair_diff: float | None = 3.0, mean_label: bool = True) -> pd.DataFrame:
-    """Бутстрэп по МОЛЕКУЛАМ (кластерный), векторный. Совпадает с estimate_ceiling на каждой выборке.
-    Возвращает перцентили 2.5/50/97.5 для sigma, rmse_floor, r2_max."""
+    """Bootstrap over MOLECULES (cluster bootstrap), vectorized. Matches estimate_ceiling on each sample.
+    Returns the 2.5/50/97.5 percentiles for sigma, rmse_floor, r2_max."""
     d = doc_level(df)
     g = d.groupby("mol_id")["y"]
     mol = pd.DataFrame({"n": g.size(), "mean": g.mean(), "sum": g.sum(),
@@ -117,7 +117,7 @@ def bootstrap_ceiling(df: pd.DataFrame, n_boot: int = 1000, seed: int = 0, min_d
 
 
 def sensitivity(df: pd.DataFrame, min_docs_grid=(2, 3), diff_grid=(None, 3.0, 2.0, 1.0)) -> pd.DataFrame:
-    """Устойчивость потолка к порогам фильтрации (min_docs, обрезка |Δ|)."""
+    """Robustness of the ceiling to filtering thresholds (min_docs, clipping of |Δ|)."""
     rows = []
     for md in min_docs_grid:
         for dg in diff_grid:

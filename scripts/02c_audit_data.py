@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-"""Шаг 2c. Аудит валидности данных по задачам (мишень x тип измерения). Только описание данных,
-никаких выводов о моделях. Вход: data/processed/tasks.csv и <task>.measurements.csv (scripts/02),
-необязательно data/raw/CHEMBL*.csv (для data_validity_comment).
+"""Step 2c. Data validity audit per task (target x measurement type). Data description only,
+no conclusions about models. Input: data/processed/tasks.csv and <task>.measurements.csv (scripts/02),
+optionally data/raw/CHEMBL*.csv (for data_validity_comment).
 
-Выход results/audit/:
-  summary.csv             — по задаче: молекулы/измерения/документы/ассеи, доля молекул с >=2 документами,
-                            sigma с фильтром |Δ| и без, связь |Δ| с разницей лет и с уровнем активности
-  delta_distribution.csv  — квантили |Δ| между документами (kind=between_docs) и между ассеями ОДНОГО документа
-                            (kind=within_doc); доли пар с |Δ|>=1,2,3
-  big_pairs.csv           — пары документов с |Δ| >= --big-delta (по умолчанию 2): документы, ассеи, годы, значения
-  doc_shift.csv           — сдвиг документа относительно консенсуса остальных документов (leave-one-out)
-  assay_shift.csv         — то же на уровне assay_chembl_id + число общих молекул; доля пар с одинаковым assay_id
-  type_compare.csv        — Ki vs IC50 для одной мишени: молекулы, измеренные в обоих типах, средний сдвиг pIC50-pKi
-  duplicates.csv          — стереоизомеры/варианты: одна связность (InChIKey14 = mol_id) с >1 полным InChIKey
-  not_checked.csv         — что в аудите НЕ проверено и почему
+Output results/audit/:
+  summary.csv             — per task: molecules/measurements/documents/assays, fraction of molecules with >=2 documents,
+                            sigma with and without the |delta| filter, relation of |delta| to year difference and to activity level
+  delta_distribution.csv  — quantiles of |delta| between documents (kind=between_docs) and between assays of the SAME document
+                            (kind=within_doc); fractions of pairs with |delta|>=1,2,3
+  big_pairs.csv           — document pairs with |delta| >= --big-delta (default 2): documents, assays, years, values
+  doc_shift.csv           — shift of a document relative to the consensus of the other documents (leave-one-out)
+  assay_shift.csv         — same at the assay_chembl_id level + number of shared molecules; fraction of pairs with the same assay_id
+  type_compare.csv        — Ki vs IC50 for one target: molecules measured in both types, mean pIC50-pKi shift
+  duplicates.csv          — stereoisomers/variants: one connectivity (InChIKey14 = mol_id) with >1 full InChIKey
+  not_checked.csv         — what the audit does NOT check and why
 """
 import argparse
 from itertools import combinations
@@ -29,17 +29,17 @@ from ncmol.ceiling import doc_level, pooled_variance
 ROOT = Path(__file__).resolve().parents[1]
 
 NOT_CHECKED = [
-    ("общие авторы документов", "в raw/processed нет авторов и аффилиаций (доступны через ресурс document ChEMBL); независимость "
-     "документов по авторам/лабораториям не проверена — ослабляет допущение независимости ошибок"),
-    ("условия ассея (клетки/фермент, организм, субстрат, концентрация АТФ, описание)", "в RAW_COLUMNS scripts/01 нет assay_description / "
-     "assay_organism / assay_cell_type / assay_category; сопоставимость проверена только косвенно (сдвиги ассеев, assay_id)"),
-    ("перекрытие документов (один и тот же эксперимент, перепубликованные данные)", "не проверено; ChEMBL может содержать данные, "
-     "перенесённые из статьи в статью, что занижает оценку шума"),
-    ("точность единиц и порядков величины в исходных документах", "проверяются только косвенно большими |Δ|; ручной аудит пар из "
-     "big_pairs.csv не выполнен"),
-    ("таутомеры и прочие дубли помимо InChIKey14", "стандартизация scripts/02 не нормализует таутомеры; не проверено"),
-    ("разброс по стандартным отклонениям внутри документа", "в данных одно значение на (молекула, документ), внутридокументные "
-     "повторы усреднены в scripts/02"),
+    ("shared authors of documents", "raw/processed contain no authors or affiliations (available via the ChEMBL document resource); independence "
+     "of documents by authors/laboratories is not checked — weakens the assumption of independent errors"),
+    ("assay conditions (cells/enzyme, organism, substrate, ATP concentration, description)", "RAW_COLUMNS of scripts/01 has no assay_description / "
+     "assay_organism / assay_cell_type / assay_category; comparability is checked only indirectly (assay shifts, assay_id)"),
+    ("overlap of documents (the same experiment, republished data)", "not checked; ChEMBL may contain data "
+     "carried over from paper to paper, which underestimates the noise"),
+    ("correctness of units and orders of magnitude in the source documents", "checked only indirectly via large |delta|; manual audit of pairs from "
+     "big_pairs.csv has not been performed"),
+    ("tautomers and other duplicates beyond InChIKey14", "standardization in scripts/02 does not normalize tautomers; not checked"),
+    ("spread via standard deviations within a document", "the data has one value per (molecule, document); within-document "
+     "replicates are averaged in scripts/02"),
 ]
 
 
@@ -54,7 +54,7 @@ def full_inchikey(smiles: str):
 
 
 def pairs_of_docs(d: pd.DataFrame) -> pd.DataFrame:
-    """Все пары документов внутри молекулы. d: mol_id, doc_id, y, year, assays(str)."""
+    """All document pairs within a molecule. d: mol_id, doc_id, y, year, assays(str)."""
     rows = []
     for mol, g in d.groupby("mol_id"):
         if len(g) < 2:
@@ -65,8 +65,8 @@ def pairs_of_docs(d: pd.DataFrame) -> pd.DataFrame:
 
 
 def loo_shift(d: pd.DataFrame, key: str) -> pd.DataFrame:
-    """Сдвиг единицы key (doc_id или assay_id) = среднее (y_ед. - среднее остальных единиц той же молекулы).
-    d: mol_id, key, y (одна строка на молекулу x единицу)."""
+    """Shift of unit key (doc_id or assay_id) = mean of (y_unit - mean of the other units of the same molecule).
+    d: mol_id, key, y (one row per molecule x unit)."""
     g = d.groupby("mol_id")["y"]
     n = g.transform("size")
     d = d[n >= 2].copy()
@@ -113,7 +113,7 @@ def audit_task(task, m: pd.DataFrame, big_delta: float):
         dist.append({"task": task, "kind": "between_docs", **qrow(pr["abs_delta"].to_numpy())})
         if pr["dyear"].nunique() > 1:
             res["spearman_absdelta_vs_dyear"] = float(spearmanr(pr["abs_delta"], pr["dyear"])[0])
-        for tag, mk in (("le3", pr["dyear"] <= 3), ("gt3", pr["dyear"] > 3)):  # sigma по парам: sqrt(mean(Δ²)/2)
+        for tag, mk in (("le3", pr["dyear"] <= 3), ("gt3", pr["dyear"] > 3)):  # sigma from pairs: sqrt(mean(delta^2)/2)
             res[f"sigma_pairs_dyear_{tag}"] = float(np.sqrt((pr.loc[mk, "delta"] ** 2).mean() / 2)) if mk.sum() else np.nan
             res[f"n_pairs_dyear_{tag}"] = int(mk.sum())
         mean_y = pr[["y_a", "y_b"]].mean(axis=1)
@@ -123,7 +123,7 @@ def audit_task(task, m: pd.DataFrame, big_delta: float):
         big.insert(0, "task", task)
         big["ge3"] = big["abs_delta"] >= 3
         big = big.merge(m.drop_duplicates("mol_id")[["mol_id", "smiles"]], on="mol_id", how="left")
-    # внутри документа между разными ассеями
+    # within a document between different assays
     da = m.groupby(["mol_id", "doc_id", "assay_id"], as_index=False)["y"].mean()
     wd = []
     for (_, _), g in da.groupby(["mol_id", "doc_id"]):
@@ -140,7 +140,7 @@ def audit_task(task, m: pd.DataFrame, big_delta: float):
     a2d = m.drop_duplicates("assay_id").set_index("assay_id")["doc_id"]
     as_["doc_id"] = as_["assay_id"].map(a2d)
     res["assays_per_doc_mean"] = float(m.groupby("doc_id")["assay_id"].nunique().mean())
-    # стереоварианты: один mol_id (InChIKey14), разные полные InChIKey
+    # stereo variants: one mol_id (InChIKey14), different full InChIKeys
     keys = {s: full_inchikey(s) for s in m["smiles"].unique()}
     m["fullkey"] = m["smiles"].map(keys)
     nk = m.groupby("mol_id")["fullkey"].nunique()
@@ -164,7 +164,7 @@ def main():
     ap.add_argument("--processed", default=str(ROOT / "data/processed"))
     ap.add_argument("--raw", default=str(ROOT / "data/raw"))
     ap.add_argument("--out", default=str(ROOT / "results/audit"))
-    ap.add_argument("--big-delta", type=float, default=2.0, help="порог |Δ| для списка подозрительных пар (2–3)")
+    ap.add_argument("--big-delta", type=float, default=2.0, help="|delta| threshold for the list of suspicious pairs (2-3)")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -178,7 +178,7 @@ def main():
         if not f.exists():
             continue
         res, dist, big, ds, as_, d, dup = audit_task(r.task, pd.read_csv(f), a.big_delta)
-        # data_validity_comment из raw (если есть)
+        # data_validity_comment from raw (if present)
         rawf = Path(a.raw) / f"{r.target}.csv"
         if rawf.exists():
             raw = pd.read_csv(rawf)
@@ -195,7 +195,7 @@ def main():
     pd.concat(AS).to_csv(out / "assay_shift.csv", index=False)
     pd.DataFrame(DUP).to_csv(out / "duplicates.csv", index=False)
 
-    # Ki vs IC50 на одной мишени: молекулы, измеренные в обоих типах
+    # Ki vs IC50 on one target: molecules measured in both types
     rows = []
     for tgt, g in tasks.groupby("target"):
         if {"Ki", "IC50"} <= set(g["type"]):
@@ -215,7 +215,7 @@ def main():
     pd.DataFrame(rows, columns=["target", "n_mols_both", "mean_pIC50_minus_pKi", "sd_diff", "median_diff", "pearson", "spearman",
                                 "sigma_Ki", "sigma_IC50"]).to_csv(out / "type_compare.csv", index=False)
     pd.DataFrame(NOT_CHECKED, columns=["item", "reason"]).to_csv(out / "not_checked.csv", index=False)
-    print(f"аудит записан в {out}")
+    print(f"audit written to {out}")
 
 
 if __name__ == "__main__":

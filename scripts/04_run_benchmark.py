@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Шаг 4. Модели x сплиты x сиды. Выход: results/benchmark.csv (одна строка = задача/сплит/сид/модель).
-Эмбеддинги: --models ecfp_gbm emb-<name>_gbm --emb-dir data/embeddings (файл <name>.npz: mol_ids, X)."""
+"""Step 4. Models x splits x seeds. Output: results/benchmark.csv (one row = task/split/seed/model).
+Embeddings: --models ecfp_gbm emb-<name>_gbm --emb-dir data/embeddings (file <name>.npz: mol_ids, X)."""
 import argparse
 import os
 from pathlib import Path
@@ -25,8 +25,8 @@ def main():
     ap.add_argument("--emb-dir", default=str(ROOT / "data/embeddings"))
     ap.add_argument("--tasks", nargs="*")
     ap.add_argument("--device", default="cpu", choices=["cpu", "mps", "cuda", "auto"],
-                    help="устройство torch для GNN (cpu по умолчанию; mps — Mac Apple Silicon). sklearn-модели всегда на CPU")
-    ap.add_argument("--n-trials", type=int, default=6, help="одинаковый бюджет подбора на модель; 0 = без подбора")
+                    help="torch device for the GNN (cpu by default; mps = Mac Apple Silicon). sklearn models always run on CPU")
+    ap.add_argument("--n-trials", type=int, default=6, help="same tuning budget per model; 0 = no tuning")
     ap.add_argument("--pred-out", default=str(ROOT / "results/predictions.csv"))
     a = ap.parse_args()
     os.environ["NCMOL_DEVICE"] = a.device
@@ -48,9 +48,9 @@ def main():
                                                "mol_id": df["mol_id"].iloc[te].to_numpy(), "y": df["y"].iloc[te].to_numpy(),
                                                "pred": pred, "n_docs": df["n_docs"].iloc[te].to_numpy(),
                                                "y_train_mean": float(df["y"].iloc[tr].mean())}))
-                    # RMSE предсказателя «среднее по train» на том же тесте: нулевая точка шкалы доли потолка
+                    # RMSE of the "train mean" predictor on the same test set: the zero point of the fraction-of-ceiling scale
                     met["rmse_mean"] = float(np.sqrt(np.mean((df["y"].iloc[te].to_numpy() - df["y"].iloc[tr].mean()) ** 2)))
-                    # n_docs тест-молекул нужен для эффективного шума метки (шаг 5)
+                    # n_docs of the test molecules is needed for the effective label noise (step 5)
                     rows.append({"task": t, "split": sp, "seed": seed, "model": m, "n_train": len(tr),
                                  "n_test": len(te), "best_params": repr(cfg), "test_mean_inv_ndocs": float((1 / df["n_docs"].iloc[te]).mean()),
                                  **met})

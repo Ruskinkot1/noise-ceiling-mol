@@ -17,7 +17,7 @@ def synth_smiles(n, seed=0):
     return out
 
 
-def target(smiles):  # простая зависимость от состава: GNN должна её выучить
+def target(smiles):  # simple composition-dependent target: the GNN should learn it
     return np.array([s.count("c") * 0.3 + s.count("O") * 0.5 - s.count("N") * 0.4 for s in smiles])
 
 
@@ -69,7 +69,7 @@ def _load_embed_script():
 
 
 def test_embed_masked_mean_pooling_offline():
-    """Крошечная случайная RoBERTa + символьный токенайзер: паддинг не должен влиять на эмбеддинг."""
+    """Tiny random RoBERTa + character tokenizer: padding must not affect the embedding."""
     torch = pytest.importorskip("torch")
     from transformers import RobertaConfig, RobertaModel
     mod = _load_embed_script()
