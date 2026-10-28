@@ -1,175 +1,175 @@
-# Дизайн эксперимента noise-ceiling-mol
+# Experimental design of noise-ceiling-mol
 
-Статус: полный дизайн (W6). Здесь нет результатов: ни одна цифра ниже не получена на данных; числа в примерах
-помечены «пример». Пороги, названные «параметр», выбраны до просмотра данных и не подбирались; их можно менять,
-но тогда надо менять и во всех таблицах. Всё, что не проверено, помечено «не проверено».
+Status: full design (W6). There are no results here: none of the numbers below were obtained on data; numbers in examples
+are marked "example". Thresholds called "parameter" were chosen before looking at the data and were not tuned; they can be changed,
+but then they must be changed in all tables as well. Anything not verified is marked "not verified".
 
-Читатели: химики и ML-специалисты. Поэтому ключевые понятия объяснены дважды.
-- Для химика: pActivity = −log10(концентрация, М) (pChEMBL). Шум 0,5 лог-единицы = примерно 3-кратная разница в
-  концентрации (10^0,5 ≈ 3,2; пример, не результат). Потолок шума показывает, на какую точность предсказания можно
-  рассчитывать, если сама эксперим. величина воспроизводится между независимыми публикациями лишь с такой точностью.
-- Для ML: метка теста — шумная. Ошибка любой модели не может быть меньше шума метки (RMSE_floor), и различия моделей
-  меньше этого шума не интерпретируемы (аналог test–retest reliability и noise ceiling в других областях; ссылки не проверены).
+Readers: chemists and ML specialists. Therefore the key concepts are explained twice.
+- For the chemist: pActivity = −log10(concentration, M) (pChEMBL). Noise of 0.5 log units = roughly a 3-fold difference in
+  concentration (10^0.5 ≈ 3.2; example, not a result). The noise ceiling shows what prediction accuracy can be
+  expected if the experimental quantity itself is reproducible across independent publications only to that precision.
+- For ML: the test label is noisy. The error of any model cannot be smaller than the label noise (RMSE_floor), and differences between models
+  smaller than this noise are not interpretable (an analogue of test–retest reliability and noise ceiling in other fields; references not verified).
 
-## 0. Что утверждаем и чего нет
-Вопрос: какая доля различий между моделями на бенчмарках свойств молекул лежит внутри шума экспериментальной метки,
-и обгоняют ли предобученные эмбеддинги ECFP+GBM, если мерить по доле потолка, на данных, которых нет в существующих
-бенчмарках. Потолок = воспроизводимость значения для одной молекулы между независимыми документами ChEMBL. Это
-оценка ВСЕЙ межисточниковой изменчивости (лаборатория, условия анализа, ошибки записи), а не «чистой» ошибки прибора
-(определение — src/ncmol/ceiling.py). Реальные различия условий ассея тоже попадают в «шум»: для задачи
-«предсказать значение в условиях произвольной лаборатории» это верный потолок, для «предсказать свойство молекулы» — консервативный.
+## 0. What we claim and what we do not
+Question: what share of the differences between models on molecular property benchmarks lies within the noise of the experimental label,
+and do pretrained embeddings outperform ECFP+GBM when measured by fraction of ceiling, on data that are not in existing
+benchmarks. Ceiling = reproducibility of the value for a single molecule across independent ChEMBL documents. This is an
+estimate of ALL cross-source variability (laboratory, assay conditions, recording errors), not of the "pure" instrument error
+(definition — src/ncmol/ceiling.py). Real differences in assay conditions also fall into the "noise": for the task
+"predict the value under the conditions of an arbitrary laboratory" this is the correct ceiling, for "predict a property of the molecule" it is conservative.
 
-## 1. Метрика: доля потолка (решение шага 0.3)
-Основная: `frac_ceiling = (RMSE_mean − RMSE_model) / (RMSE_mean − RMSE_floor)`.
-- `RMSE_mean` — RMSE предсказания «среднее по train» на том же тесте (scripts/04, столбец `rmse_mean`);
-- `RMSE_floor = σ·sqrt(mean(1/n_docs))` по тест-молекулам (src/ncmol/ceiling.py); метка молекулы = среднее по её документам,
-  дисперсия шума метки σ²/n_docs, поэтому потолок считается под КОНКРЕТНЫЙ тест-набор;
-- 0 = не лучше среднего, 1 = на потолке шума, >1 = подозрение на подгонку шума или утечку, <0 = хуже среднего.
-Почему: понятная нулевая точка для обеих аудиторий; не зависит от масштаба pActivity.
-Вспомогательные (в таблицах, не в заголовках): `frac_rmse = RMSE_floor/RMSE`, `frac_r2 = R²/R²_max`.
-Метрики качества: RMSE, MAE, R², Spearman (src/ncmol/metrics.py); RMSE — основная, т.к. на неё опирается потолок.
-Spearman и MAE показываем, но «потолка» для них в основной таблице нет (для MAE есть приближение σ·sqrt(2/π) при нормальном шуме).
+## 1. Metric: fraction of ceiling (decision of step 0.3)
+Primary: `frac_ceiling = (RMSE_mean − RMSE_model) / (RMSE_mean − RMSE_floor)`.
+- `RMSE_mean` — the RMSE of the "train mean" prediction on the same test set (scripts/04, column `rmse_mean`);
+- `RMSE_floor = σ·sqrt(mean(1/n_docs))` over the test molecules (src/ncmol/ceiling.py); the label of a molecule = the mean over its documents,
+  the label noise variance is σ²/n_docs, so the ceiling is computed for a SPECIFIC test set;
+- 0 = no better than the mean, 1 = at the noise ceiling, >1 = suspected noise fitting or leakage, <0 = worse than the mean.
+Why: a clear zero point for both audiences; independent of the pActivity scale.
+Auxiliary (in tables, not in headlines): `frac_rmse = RMSE_floor/RMSE`, `frac_r2 = R²/R²_max`.
+Quality metrics: RMSE, MAE, R², Spearman (src/ncmol/metrics.py); RMSE is primary because the ceiling relies on it.
+We show Spearman and MAE, but there is no "ceiling" for them in the main table (for MAE there is the approximation σ·sqrt(2/π) under normal noise).
 
-### 1.1 Поправка на аттенюацию (шумная тестовая метка)
-Модель шума: y_obs = t + e, Var(e_i) = σ²/n_i, e не коррелирует с ошибкой модели. Тогда MSE_obs = MSE_true + RMSE_floor².
-`metrics.attenuation_corrected` даёт:
+### 1.1 Attenuation correction (noisy test label)
+Noise model: y_obs = t + e, Var(e_i) = σ²/n_i, e is uncorrelated with the model error. Then MSE_obs = MSE_true + RMSE_floor².
+`metrics.attenuation_corrected` gives:
 - `rmse_true = sqrt(max(RMSE² − floor², 0))`, `rmse_mean_true = sqrt(max(RMSE_mean² − floor², 0))`;
-- `frac_ceiling_true = (rmse_mean_true − rmse_true) / rmse_mean_true` (в «истинных» единицах потолок = 0 ошибки);
-- `R²_true = 1 − (MSE − floor²)/(Var(y_obs) − floor²)`; надёжность метки `rel = 1 − floor²/Var(y_obs)`;
-  `r_true ≈ r_obs/sqrt(rel)` (для Спирмена — приближение, выведено для Пирсона).
-Допущения (не доказаны, проверять): гомоскедастичность σ; независимость шума теста и ошибки модели (нарушается, если
-документы теста содержат и обучающие молекулы того же ряда — «документная корреляция», см. §3); σ оценена по реплицированным
-молекулам и перенесена на все. Если `RMSE < floor`, поправка обрезает до 0 и ставит флаг `below_floor` (подгонка шума или утечка).
-Запас до потолка `headroom = (RMSE_mean − RMSE_floor)/RMSE_mean`: если он < 0,2 (параметр `LOW_HEADROOM` в scripts/05), знаменатель доли потолка близок к 0 и она неустойчива —
-задача помечается `low_headroom`, а результат по ней читается осторожно. Поправка вспомогательная: заголовок — `frac_ceiling`; обе версии выдаются, расхождение — часть анализа чувствительности.
-Неопределённость σ: границы бутстрэпа из scripts/03 (`sigma_lo`, `sigma_hi`) пересчитываются в `frac_ceiling_at_sigma_lo/hi`.
+- `frac_ceiling_true = (rmse_mean_true − rmse_true) / rmse_mean_true` (in "true" units the ceiling = 0 error);
+- `R²_true = 1 − (MSE − floor²)/(Var(y_obs) − floor²)`; label reliability `rel = 1 − floor²/Var(y_obs)`;
+  `r_true ≈ r_obs/sqrt(rel)` (for Spearman it is an approximation, derived for Pearson).
+Assumptions (not proven, to be checked): homoscedasticity of σ; independence of test noise and model error (violated if the
+test documents also contain training molecules of the same series — "document correlation", see §3); σ is estimated on replicated
+molecules and transferred to all. If `RMSE < floor`, the correction clips to 0 and sets the flag `below_floor` (noise fitting or leakage).
+Headroom `headroom = (RMSE_mean − RMSE_floor)/RMSE_mean`: if it is < 0.2 (parameter `LOW_HEADROOM` in scripts/05), the denominator of the fraction of ceiling is close to 0 and the fraction is unstable —
+the task is flagged `low_headroom`, and its result is read with caution. The correction is auxiliary: the headline is `frac_ceiling`; both versions are reported, and their discrepancy is part of the sensitivity analysis.
+Uncertainty of σ: the bootstrap bounds from scripts/03 (`sigma_lo`, `sigma_hi`) are recomputed into `frac_ceiling_at_sigma_lo/hi`.
 
-## 2. Задачи
-Задача = (мишень ChEMBL × тип измерения Ki или IC50), pActivity = pChEMBL, только `standard_relation "="`, ассей типа B,
-confidence_score ≥ 8 (scripts/01); одно значение на (молекула, документ) — среднее внутри документа (scripts/02).
-Типы Ki и IC50 — отдельные задачи (см. §8.2). В набор модели входят ВСЕ молекулы задачи (в т.ч. с одним документом);
-реплицированными (≥2 документа) считаются молекулы для оценки σ. Задача допускается при ≥100 реплицированных молекул
-(configs/endpoints.yaml); критерий остановки проекта — менее 15 допущенных задач (ncm-researcher). Список мишеней
-в configs/endpoints.yaml помечен «не проверено» (ID записаны по памяти, проверка pref_name по API).
-Внешние наборы (TDC и др.) — отдельно, с потолком из других источников (не проверено).
+## 2. Tasks
+A task = (ChEMBL target × measurement type Ki or IC50), pActivity = pChEMBL, only `standard_relation "="`, assay type B,
+confidence_score ≥ 8 (scripts/01); one value per (molecule, document) — the mean within the document (scripts/02).
+Ki and IC50 types are separate tasks (see §8.2). The model's dataset includes ALL molecules of the task (including those with a single document);
+replicated molecules (≥2 documents) are those used to estimate σ. A task is admitted with ≥100 replicated molecules
+(configs/endpoints.yaml); the project stopping criterion is fewer than 15 admitted tasks (ncm-researcher). The target list
+in configs/endpoints.yaml is marked "not verified" (IDs written from memory, pref_name to be checked via the API).
+External sets (TDC etc.) are handled separately, with a ceiling from other sources (not verified).
 
-## 3. Сплиты и сиды
-- random: случайные 80/20 по молекулам;
-- scaffold: группы по скэффолду Мерка целиком в train или test (порядок групп перемешан по сиду; крупные скэффолды всегда в train);
-- temporal: тест = 20 % молекул с самым поздним годом первой публикации (`first_year`); детерминирован, сид меняет только модель.
-- 5 сидов (0–4) для каждой модели; одинаковые (задача, сплит, сид) для всех моделей.
-Дисперсия по сидам — это нестабильность обучения и разбиения, НЕ неопределённость из-за конечной выборки молекул; последнюю даёт
-кластерный бутстрэп по молекулам (§6). Оба вида неопределённости показываются отдельно.
-Риски (проверяются разрезами §9 и артефактами §10, не снимаются): (a) документная корреляция — молекулы одной статьи
-(одного ряда) в train и test; сплит по документам не делается (не проверено, возможное расширение); (b) scaffold-сплит
-не гарантирует низкое сходство (см. max Tanimoto test→train); (c) temporal использует первый год молекулы, не год конкретного измерения.
+## 3. Splits and seeds
+- random: random 80/20 by molecules;
+- scaffold: Murcko scaffold groups go entirely into train or test (group order shuffled by seed; large scaffolds always go to train);
+- temporal: test = the 20% of molecules with the latest year of first publication (`first_year`); deterministic, the seed changes only the model.
+- 5 seeds (0–4) for each model; identical (task, split, seed) for all models.
+Variance over seeds reflects instability of training and partitioning, NOT uncertainty due to the finite sample of molecules; the latter is given by
+the cluster bootstrap over molecules (§6). Both kinds of uncertainty are shown separately.
+Risks (checked by the slices of §9 and the artifacts of §10, not eliminated): (a) document correlation — molecules from one paper
+(one series) in train and test; a split by documents is not done (not verified, a possible extension); (b) the scaffold split
+does not guarantee low similarity (see max Tanimoto test→train); (c) temporal uses the molecule's first year, not the year of the specific measurement.
 
-## 4. Модели
-Все модели видят одни и те же данные, сплиты и сиды.
-- Базовая линия: ECFP4 (счётчики, 2048) + градиентный бустинг (`ecfp_gbm`, BASELINE в src/ncmol/models.py).
-- Прочие классические: `ecfp_rf`, `ecfp_mlp`, `ecfp_ridge`.
-- Предобученные эмбеддинги: заморозка + голова (GBM или MLP на эмбеддинге, `emb-<name>_gbm`), без дообучения — явное ограничение:
-  вывод относится к замороженным признакам, не к дообучению. Список эмбеддингов не зафиксирован.
-- GNN (D-MPNN через chemprop): запланирована в docstring models.py, НЕ реализована.
-Бюджет гиперпараметров (требование честности): одинаковый для ВСЕХ моделей, включая ECFP+GBM и «головы» над эмбеддингами.
-Состояние кода: гиперпараметры в models.py сейчас фиксированы и не подбирались, т.е. требование не выполнено — ECFP+GBM
-не настроен «так же тщательно, как предобученная модель». Предложение (для W4, не реализовано): случайный поиск из N=20 конфигураций
-на внутренней валидации train (того же типа, что внешний сплит), одинаковое N для всех, лучший по RMSE; число конфигураций записывается.
-Пока этого нет, результаты сравнения моделей нельзя считать «честными» в смысле п. 2 списка честности.
+## 4. Models
+All models see the same data, splits, and seeds.
+- Baseline: ECFP4 (counts, 2048) + gradient boosting (`ecfp_gbm`, BASELINE in src/ncmol/models.py).
+- Other classical: `ecfp_rf`, `ecfp_mlp`, `ecfp_ridge`.
+- Pretrained embeddings: frozen + head (GBM or MLP on the embedding, `emb-<name>_gbm`), without fine-tuning — an explicit limitation:
+  the conclusion applies to frozen features, not to fine-tuning. The list of embeddings is not fixed.
+- GNN (D-MPNN via chemprop): planned in the docstring of models.py, NOT implemented.
+Hyperparameter budget (a fairness requirement): the same for ALL models, including ECFP+GBM and the "heads" on top of embeddings.
+State of the code: the hyperparameters in models.py are currently fixed and were not tuned, i.e. the requirement is not met — ECFP+GBM
+is not tuned "as carefully as the pretrained model". Proposal (for W4, not implemented): random search over N=20 configurations
+on an inner validation of train (of the same type as the outer split), the same N for all, best by RMSE; the number of configurations is recorded.
+Until this exists, the results of model comparison cannot be considered "fair" in the sense of item 2 of the fairness list.
 
-## 5. Гипотезы (до данных) и условия опровержения
-Пороги — параметры, выбраны до просмотра данных.
-- H1 (шум существенен). На допущенных задачах потолок заметно ниже идеала: медианный R²_max по задачам < 0,9.
-  Опровергается, если медиана R²_max ≥ 0,9 (шум мал; тогда аргумент о шуме не работает, переформулировать как сравнение моделей —
-  stop-критерий ncm-researcher) или если ДИ медианы лежит целиком выше 0,9.
-- H2 (различия моделей в основном внутри шума). Для большинства пар «модель vs ECFP+GBM» по (сплит) разница доли потолка
-  не отличается от 0: скорректированный p Уилкоксона по задачам ≥ 0,05 И ДИ парного бутстрэпа по молекулам содержит 0.
-  Опровергается, если для ≥ половины сравнений p_adj < 0,05 И |средняя Δ доли потолка| ≥ MDE (§6.4).
-- H3 (эмбеддинги не обгоняют ECFP+GBM по доле потолка). Для замороженных эмбеддингов Δ(доля потолка) vs ECFP+GBM не положительна
-  при scaffold и temporal сплитах. Опровергается, если хотя бы для одного эмбеддинга при scaffold или temporal p_adj < 0,05 и
-  средняя Δ > 0 и ≥ MDE. Дополнение H3b (разведочное): преимущество эмбеддингов (если есть) уменьшается от random к scaffold и temporal.
-- Проверки-ловушки (не гипотезы): доля потолка > 1 или `below_floor` — утечка/подгонка шума; расхождение чистого и неочищенного
-  наборов (деконтаминация, ncm-decontaminate) = оценка влияния утечки.
-Примечание: при малом числе задач T тест Уилкоксона недостижим: при T=5 минимальный двусторонний p = 0,0625; при T=6 — 0,031, и после
-поправки Холма на m сравнений нужен p ≤ 0,05/m. Поэтому при T<6 тест не выдаётся (NaN), решение — по парному бутстрэпу.
+## 5. Hypotheses (before data) and refutation conditions
+Thresholds are parameters, chosen before looking at the data.
+- H1 (noise is substantial). On admitted tasks the ceiling is noticeably below ideal: the median R²_max over tasks < 0.9.
+  Refuted if the median R²_max ≥ 0.9 (noise is small; then the noise argument does not work, reformulate as a model comparison —
+  the ncm-researcher stop criterion) or if the CI of the median lies entirely above 0.9.
+- H2 (differences between models are mostly within noise). For most "model vs ECFP+GBM" pairs per (split), the difference in fraction of ceiling
+  is not distinguishable from 0: the adjusted Wilcoxon p over tasks ≥ 0.05 AND the CI of the paired bootstrap over molecules contains 0.
+  Refuted if for ≥ half of the comparisons p_adj < 0.05 AND |mean Δ fraction of ceiling| ≥ MDE (§6.4).
+- H3 (embeddings do not outperform ECFP+GBM in fraction of ceiling). For frozen embeddings, Δ(fraction of ceiling) vs ECFP+GBM is not positive
+  under scaffold and temporal splits. Refuted if for at least one embedding under scaffold or temporal p_adj < 0.05 and
+  mean Δ > 0 and ≥ MDE. Addendum H3b (exploratory): the advantage of embeddings (if any) decreases from random to scaffold and temporal.
+- Trap checks (not hypotheses): fraction of ceiling > 1 or `below_floor` — leakage/noise fitting; discrepancy between the clean and raw
+  sets (decontamination, ncm-decontaminate) = an estimate of the impact of leakage.
+Note: with a small number of tasks T the Wilcoxon test is unattainable: at T=5 the minimum two-sided p = 0.0625; at T=6 it is 0.031, and after
+Holm correction for m comparisons p ≤ 0.05/m is required. Therefore at T<6 the test is not reported (NaN), and the decision rests on the paired bootstrap.
 
-## 6. Статистика (src/ncmol/stats.py)
-1. Кластерный бутстрэп по молекулам (единица ресэмплинга — молекула; все её строки по сидам идут вместе): ДИ для RMSE, MAE, R²,
-   Spearman и доли потолка; процентильные 95 % ДИ, по умолчанию 500–1000 ресэмплов. Для сводки по задачам — среднее по задачам с
-   равным весом, ресэмплы в задачах независимы; отдельно показывается бутстрэп по задачам (набор задач — тоже выборка).
-2. Парный бутстрэп «модель − ECFP+GBM»: обе модели на одних и тех же ресэмплах молекул; результат — Δ, ДИ, бутстрэп-p, флаг «внутри шума» (ДИ содержит 0).
-3. Уилкоксон (знаковых рангов, двусторонний) по задачам на Δ доли потолка (и RMSE); поправка на множественность — ОСНОВНАЯ Holm
-   (контроль FWER, без допущений о зависимости; семейство = все сравнения «модель×сплит» в таблице), чувствительность — Бенджамини–Хохберг (FDR).
-   Обе в paired_vs_baseline.csv (`p_holm`, `p_bh`).
-4. MDE (минимально обнаружимая разность) при α=0,05, мощности 0,8: `MDE = (z_{0,975}+z_{0,8})·SE ≈ 2,8·SE`.
-   (a) эмпирическая — по SE парной разности из бутстрэпа (в slices.csv: `se`, `mde_80`);
-   (b) модельная, функция шума и размера выборки (`stats.mde_rmse_gaussian`): для ошибок e_k = u_k + ε, Var(u)=v, corr(u_a,u_b)=ρ,
-       общий шум метки Var(ε)=floor²: Var(e_a²−e_b²) = 2v(1−ρ)·(2v(1+ρ)+4·floor²), SE(ΔMSE)=sqrt(Var/n), ΔRMSE ≈ ΔMSE/(2·RMSE_obs).
-       Допущения: гауссовость, шум независим от ошибок; ρ — параметр (оценивается из predictions.csv, не задаётся «из головы»).
-       Следствие: MDE растёт с шумом метки и падает как 1/sqrt(n_test). Проверено на симуляции в tests/test_stats.py (не на реальных данных).
-   В единицах доли потолка: деление на (RMSE_mean − RMSE_floor) (`stats.mde_frac_units`).
-Формулировка вывода: разность меньше MDE и ДИ содержит 0 → «внутри шума» (мы не можем её отличить от нуля), а не «модели одинаковы».
+## 6. Statistics (src/ncmol/stats.py)
+1. Cluster bootstrap over molecules (the resampling unit is the molecule; all its rows across seeds go together): CIs for RMSE, MAE, R²,
+   Spearman and fraction of ceiling; percentile 95% CIs, by default 500–1000 resamples. For the summary over tasks — the mean over tasks with
+   equal weights, resamples are independent across tasks; a bootstrap over tasks is shown separately (the set of tasks is also a sample).
+2. Paired bootstrap "model − ECFP+GBM": both models on the same resamples of molecules; result — Δ, CI, bootstrap p, an "inside noise" flag (the CI contains 0).
+3. Wilcoxon (signed-rank, two-sided) over tasks on Δ fraction of ceiling (and RMSE); the multiplicity correction — PRIMARY is Holm
+   (FWER control, no assumptions about dependence; family = all "model×split" comparisons in the table), sensitivity — Benjamini–Hochberg (FDR).
+   Both are in paired_vs_baseline.csv (`p_holm`, `p_bh`).
+4. MDE (minimum detectable difference) at α=0.05, power 0.8: `MDE = (z_{0.975}+z_{0.8})·SE ≈ 2.8·SE`.
+   (a) empirical — from the SE of the paired difference from the bootstrap (in slices.csv: `se`, `mde_80`);
+   (b) model-based, a function of noise and sample size (`stats.mde_rmse_gaussian`): for errors e_k = u_k + ε, Var(u)=v, corr(u_a,u_b)=ρ,
+       shared label noise Var(ε)=floor²: Var(e_a²−e_b²) = 2v(1−ρ)·(2v(1+ρ)+4·floor²), SE(ΔMSE)=sqrt(Var/n), ΔRMSE ≈ ΔMSE/(2·RMSE_obs).
+       Assumptions: Gaussianity, noise independent of errors; ρ is a parameter (estimated from predictions.csv, not set "out of thin air").
+       Consequence: MDE grows with label noise and falls as 1/sqrt(n_test). Verified in a simulation in tests/test_stats.py (not on real data).
+   In units of fraction of ceiling: division by (RMSE_mean − RMSE_floor) (`stats.mde_frac_units`).
+Wording of the conclusion: a difference smaller than the MDE with a CI containing 0 → "inside noise" (we cannot distinguish it from zero), not "the models are equal".
 
-## 7. Метрики на подмножествах: activity cliffs
-Cliff-пара: Tanimoto(ECFP4, биты 2048) ≥ `sim` и |ΔpActivity| ≥ `delta`; параметры по умолчанию 0,8 и 1,5, НЕ подбирались, меняются в scripts/07.
-Два взгляда: (a) cliff-молекулы — тестовые молекулы, у которых в train есть cliff-партнёр (`cliff_mask_vs_train`): ΔRMSE «модель − ECFP+GBM» на них;
-(b) пары внутри теста: доля верно предсказанного знака Δ и RMSE предсказанной разности (`cliff_pair_metrics`; cliff_pairs.csv).
-Оговорка шума: часть «обрывов» — шум меток. Ожидаемая вероятность, что шум один даёт |Δ| ≥ delta у пары с n_i, n_j документами, при нормальном
-шуме `stats.p_noise_exceeds` (приближение); обрывы по реплицированным молекулам надёжнее. Результатов по обрывам пока нет.
+## 7. Metrics on subsets: activity cliffs
+Cliff pair: Tanimoto(ECFP4, 2048 bits) ≥ `sim` and |ΔpActivity| ≥ `delta`; default parameters 0.8 and 1.5, NOT tuned, changed in scripts/07.
+Two views: (a) cliff molecules — test molecules that have a cliff partner in train (`cliff_mask_vs_train`): ΔRMSE "model − ECFP+GBM" on them;
+(b) pairs within the test set: the share of correctly predicted sign of Δ and the RMSE of the predicted difference (`cliff_pair_metrics`; cliff_pairs.csv).
+Noise caveat: some "cliffs" are label noise. The expected probability that noise alone gives |Δ| ≥ delta for a pair with n_i, n_j documents, under normal
+noise, is `stats.p_noise_exceeds` (approximation); cliffs among replicated molecules are more reliable. There are no results on cliffs yet.
 
-## 8. Чувствительность
-### 8.1 Пороги фильтров
-Потолок пересчитывается на сетке: min_docs ∈ {2, 3} × max |Δ| между документами ∈ {нет, 3, 2, 1} (scripts/03, ceiling_sensitivity.csv; в 02c — σ без фильтра, с 3 и 2).
-Вывод о потолке/доле потолка считается устойчивым, если порядок моделей и флаги «внутри шума» не меняются при смене порогов (проверить по scripts/05 для разных ceilings.csv; автоматизации нет).
-Обрезка по |Δ| убирает ошибки единиц/записи, но и занижает σ, т.е. завышает достижимость; поэтому показываем обе версии.
-### 8.2 Ki против IC50
-Задачи считаются отдельно, объединять нельзя. Теория: для конкурентного ингибитора при равновесии Ki и IC50 связаны уравнением Ченга–Прусоффа
-(IC50 = Ki·(1 + [S]/Km) для субстрата; для связывания радиолиганда — с [L]/Kd; ссылка на оригинал не проверена). Из этого следует лишь то, что при
-конкурентном механизме и известных условиях IC50 ≥ Ki, а сдвиг зависит от условий конкретного ассея; для неконкурентных механизмов и
-несопоставимых условий универсального пересчёта нет, и мы Ki↔IC50 НЕ конвертируем. Эмпирически (02c, type_compare.csv): число молекул в обоих типах, средняя
-разность pIC50 − pKi, её SD, корреляции, σ по типам. Если σ(Ki) и σ(IC50) заметно различаются, потолок и выводы приводятся по типам отдельно.
-### 8.3 Годы
-Связь |Δ| между документами с разницей лет и с уровнем активности (02c: spearman_absdelta_vs_dyear, sigma_pairs_dyear_*); потолок по страте (только документы после порогового года) — расширение scripts/03, не реализовано.
-Temporal-сплит: дрейф средней активности и диапазона между train и test — в comparison_artifacts.csv (`y_mean_*`, `y_sd_*`, `year_median_*`).
+## 8. Sensitivity
+### 8.1 Filter thresholds
+The ceiling is recomputed on a grid: min_docs ∈ {2, 3} × max |Δ| between documents ∈ {none, 3, 2, 1} (scripts/03, ceiling_sensitivity.csv; in 02c — σ without a filter, with 3 and 2).
+The conclusion about the ceiling/fraction of ceiling is considered robust if the model order and the "inside noise" flags do not change when the thresholds change (check via scripts/05 for different ceilings.csv; there is no automation).
+Trimming by |Δ| removes unit/recording errors, but also lowers σ, i.e. overstates attainability; therefore we show both versions.
+### 8.2 Ki vs IC50
+The tasks are treated separately and cannot be merged. Theory: for a competitive inhibitor at equilibrium, Ki and IC50 are related by the Cheng–Prusoff equation
+(IC50 = Ki·(1 + [S]/Km) for a substrate; for radioligand binding — with [L]/Kd; the reference to the original was not verified). This implies only that under a
+competitive mechanism and known conditions IC50 ≥ Ki, and the shift depends on the conditions of the specific assay; for non-competitive mechanisms and
+incomparable conditions there is no universal conversion, and we do NOT convert Ki↔IC50. Empirically (02c, type_compare.csv): the number of molecules in both types, the mean
+difference pIC50 − pKi, its SD, correlations, σ by type. If σ(Ki) and σ(IC50) differ noticeably, the ceiling and conclusions are given per type separately.
+### 8.3 Years
+The relation of |Δ| between documents to the difference in years and to the activity level (02c: spearman_absdelta_vs_dyear, sigma_pairs_dyear_*); a ceiling by stratum (only documents after a threshold year) is an extension of scripts/03, not implemented.
+Temporal split: drift of mean activity and range between train and test — in comparison_artifacts.csv (`y_mean_*`, `y_sd_*`, `year_median_*`).
 
-## 9. Размер выборки
-- MDE как функция n_test и шума (§6.4): таблица/кривая для сетки n ∈ {50, 100, 200, 500, 1000, 5000}, floor из ceilings.csv, v из измеренного RMSE, ρ из predictions.csv.
-- Разрез по размеру задачи (терцили числа молекул) в scripts/07 (`task_size`).
-- Кривая обучения (доля потолка от доли train: 25/50/100 %) — требует в scripts/04 параметра `--train-frac`; не реализовано.
+## 9. Sample size
+- MDE as a function of n_test and noise (§6.4): a table/curve for the grid n ∈ {50, 100, 200, 500, 1000, 5000}, floor from ceilings.csv, v from the measured RMSE, ρ from predictions.csv.
+- A breakdown by task size (terciles of the number of molecules) in scripts/07 (`task_size`).
+- Learning curve (fraction of ceiling vs train fraction: 25/50/100%) — requires a `--train-frac` parameter in scripts/04; not implemented.
 
-## 10. Аудит данных и артефакты сравнения
-scripts/02c_audit_data.py → results/audit/*.csv: доля молекул с ≥2 документами; распределение |Δ| между документами и между ассеями ОДНОГО документа
-(если внутри документа шум мал, а между документами велик — шум определяется межлабораторной составляющей); пары с |Δ| ≥ 2–3 со списком документов
-(big_pairs.csv, порог — параметр `--big-delta`, не фильтр данных); сдвиг документа и ассея относительно консенсуса остальных (leave-one-out, флаг при |z|>3 и ≥5 общих молекул);
-доля пар с одинаковым assay_id (в ChEMBL ассеи обычно привязаны к документу; ненулевая доля — проверка); Ki vs IC50; стереоварианты (один InChIKey14 = `mol_id`, но разные
-полные InChIKey: стереоизомеры, слитые стандартизацией, и разница |Δ| для пар с разными/одинаковыми вариантами).
-НЕ проверено (results/audit/not_checked.csv): общие авторы документов; условия ассея (клеточная линия, организм, субстрат, АТФ, описание — нет в raw-столбцах scripts/01);
-перепубликация одних и тех же данных в разных документах; таутомеры; ручной аудит больших пар.
-scripts/07 → results/slices/comparison_artifacts.csv: по задаче×сплиту×сиду — размер train/test, средний n_docs теста, RMSE_floor теста и его отношение к SD метки,
-дисбаланс диапазона (средние/SD train vs test, KS-статистика, доля теста вне 5–95 % train), распределение max Tanimoto test→train (среднее, медиана, q10, q90, доля ≥0,8), доля cliff-молекул,
-медианный год train vs test. Эти числа обязаны публиковаться рядом с таблицами моделей: разница сплитов частично объясняется ими.
-Разрезы (scripts/07 → slices.csv): разница «модель − ECFP+GBM» (ΔRMSE, <0 — модель лучше; и ΔRMSE/σ) с кластерным ДИ и пометкой «внутри шума»/«модель лучше»/«модель хуже»
-по: мишени, сплиту, шуму молекулы (n_docs 1/2/3+), бинам Tanimoto к train, cliff/не-cliff, терцилям активности, размеру задачи. В ячейку разреза входят только задачи, где в ней ≥30 молекул (`--min-mols`), поэтому состав задач меняется от ячейки к ячейке; он указан в `n_tasks`. Много разрезов = много сравнений; разрезы разведочные, поправки в них не применяются —
-об этом пишется в статье, находки из разрезов не формулируются как подтверждённые.
+## 10. Data audit and comparison artifacts
+scripts/02c_audit_data.py → results/audit/*.csv: the share of molecules with ≥2 documents; the distribution of |Δ| between documents and between assays of the SAME document
+(if the noise within a document is small and between documents is large — the noise is dominated by the inter-laboratory component); pairs with |Δ| ≥ 2–3 with a list of documents
+(big_pairs.csv, threshold — parameter `--big-delta`, not a data filter); the shift of a document and an assay relative to the consensus of the others (leave-one-out, flagged at |z|>3 and ≥5 shared molecules);
+the share of pairs with the same assay_id (in ChEMBL assays are usually tied to a document; a nonzero share is a check); Ki vs IC50; stereo variants (one InChIKey14 = `mol_id`, but different
+full InChIKeys: stereoisomers merged by standardization, and the difference in |Δ| for pairs with different/identical variants).
+NOT checked (results/audit/not_checked.csv): shared authors of documents; assay conditions (cell line, organism, substrate, ATP, description — not in the raw columns of scripts/01);
+republication of the same data in different documents; tautomers; manual audit of large pairs.
+scripts/07 → results/slices/comparison_artifacts.csv: per task×split×seed — train/test size, the mean n_docs of the test, the test RMSE_floor and its ratio to the label SD,
+range imbalance (means/SD train vs test, KS statistic, share of test outside the 5–95% of train), the distribution of max Tanimoto test→train (mean, median, q10, q90, share ≥0.8), the share of cliff molecules,
+median year train vs test. These numbers must be published next to the model tables: the difference between splits is partly explained by them.
+Slices (scripts/07 → slices.csv): the difference "model − ECFP+GBM" (ΔRMSE, <0 — the model is better; and ΔRMSE/σ) with a cluster CI and the label "inside noise"/"model better"/"model worse"
+by: target, split, molecule noise (n_docs 1/2/3+), Tanimoto bins to train, cliff/non-cliff, activity terciles, task size. A slice cell includes only tasks that have ≥30 molecules in it (`--min-mols`), so the task composition changes from cell to cell; it is given in `n_tasks`. Many slices = many comparisons; the slices are exploratory, no corrections are applied to them —
+this is stated in the paper, and findings from slices are not formulated as confirmed.
 
-## 11. Честность сравнения (требование пользователя; обязательно в Methods/Limitations статьи)
-1. Одинаковые данные, сплиты и сиды для всех моделей. (выполнено в scripts/04 по конструкции)
-2. Одинаковый бюджет подбора гиперпараметров у ECFP+GBM/RF/MLP, GNN и «голов» над эмбеддингами. (НЕ выполнено: см. §4)
-3. Фундаментальные модели: только заморозка + голова, без дообучения; это явное ограничение.
-4. Метка теста шумная: доля потолка + поправка на аттенюацию (§1.1).
-5. Риск против малых моделей: корпуса PubChem/ZINC могут содержать наши молекулы, даты отсечения могут быть «не проверено»; деконтаминация обязательна,
-   оценка утечки = чистое vs неочищенное.
-6. Парное сравнение по задачам с ДИ и поправкой на множественные сравнения (Holm; BH как чувствительность); различия внутри шума так и называть.
+## 11. Fairness of the comparison (user requirement; mandatory in the Methods/Limitations of the paper)
+1. The same data, splits, and seeds for all models. (met in scripts/04 by construction)
+2. The same hyperparameter tuning budget for ECFP+GBM/RF/MLP, the GNN, and the "heads" on top of embeddings. (NOT met: see §4)
+3. Foundation models: only frozen + head, without fine-tuning; this is an explicit limitation.
+4. The test label is noisy: fraction of ceiling + attenuation correction (§1.1).
+5. Risk against small models: the PubChem/ZINC corpora may contain our molecules, cutoff dates may be "not verified"; decontamination is mandatory,
+   the leakage estimate = clean vs raw.
+6. Paired comparison across tasks with CIs and a multiple-comparison correction (Holm; BH as sensitivity); differences within noise are to be called that.
 
-## 12. Контракт данных и порядок запуска
-Порядок: 01 → 02 → деконтаминация → 02c (аудит) → 03 (потолок) → 04 (бенчмарк) → 05 (доля потолка) → 07 (разрезы, артефакты).
-Вход 05: results/benchmark.csv (task, split, seed, model, n_train, n_test, test_mean_inv_ndocs, rmse, mae, r2, spearman, rmse_mean) и results/ceilings.csv
-(task, sigma, var_y, sigma_lo, sigma_hi). Для ДИ по молекулам и разрезов нужен results/predictions.csv (или .parquet): обязательно
-`task, split, seed, model, mol_id, pred`; `y`, `n_docs`, `y_train_mean` при отсутствии достраиваются из data/processed/<task>.molecules.csv и пересчётом сплита
-(ncmol.splits; требует того же порядка строк molecules.csv, что у scripts/04). Одна строка = тест-молекула × модель × сид.
-Каждый результат несёт: версию данных (релиз ChEMBL, дата), коммит кода, сиды, тип сплита (записывает запускающий).
+## 12. Data contract and run order
+Order: 01 → 02 → decontamination → 02c (audit) → 03 (ceiling) → 04 (benchmark) → 05 (fraction of ceiling) → 07 (slices, artifacts).
+Input of 05: results/benchmark.csv (task, split, seed, model, n_train, n_test, test_mean_inv_ndocs, rmse, mae, r2, spearman, rmse_mean) and results/ceilings.csv
+(task, sigma, var_y, sigma_lo, sigma_hi). For CIs over molecules and slices, results/predictions.csv (or .parquet) is needed: mandatory
+`task, split, seed, model, mol_id, pred`; `y`, `n_docs`, `y_train_mean`, when absent, are reconstructed from data/processed/<task>.molecules.csv and by recomputing the split
+(ncmol.splits; requires the same row order of molecules.csv as in scripts/04). One row = test molecule × model × seed.
+Each result carries: the data version (ChEMBL release, date), the code commit, seeds, the split type (recorded by whoever runs it).
 
-## 13. Ограничения (кратко)
-Гомоскедастичность и перенос σ с реплицированных молекул на все; шум включает реальные различия условий; документная корреляция train–test; фиксированные
-негиперподобранные модели на текущий момент; пороги cliff и фильтров — параметры; разрезы без поправки на множественность; количество допущенных задач может быть мало
-(тогда Уилкоксон недоступен); результаты на реальных данных отсутствуют на момент написания.
+## 13. Limitations (brief)
+Homoscedasticity and transfer of σ from replicated molecules to all; noise includes real differences in conditions; train–test document correlation; fixed
+non-tuned models at the present time; cliff and filter thresholds are parameters; slices without multiplicity correction; the number of admitted tasks may be small
+(then Wilcoxon is unavailable); results on real data are absent at the time of writing.
