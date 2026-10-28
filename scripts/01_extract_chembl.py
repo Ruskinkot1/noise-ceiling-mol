@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-"""Шаг 1. Выгрузка измерений из ChEMBL REST API (SQLite-дамп 5.7 ГБ не используется).
+"""Step 1. Extraction of measurements from the ChEMBL REST API (the 5.7 GB SQLite dump is not used).
 
   python scripts/01_extract_chembl.py --targets CHEMBL203 CHEMBL240
-  python scripts/01_extract_chembl.py                      # все кандидаты из configs/endpoints.yaml
+  python scripts/01_extract_chembl.py                      # all candidates from configs/endpoints.yaml
 
-Фильтры (на стороне API): standard_relation '=', pchembl_value не null, data_validity_comment пуст,
-assay_type B, standard_type in (Ki, IC50). Фильтра confidence_score по activity в API нет, поэтому
-он применяется отдельным запросом к ресурсу assay (confidence_score__gte=8, assay_type=B, та же мишень):
-берётся множество assay_chembl_id, и активности оставляются только из них. Дополнительно
-potential_duplicate == 1 отбрасывается. Если API недоступен после ретраев — скрипт ПАДАЕТ (данные не имитируются).
-Выход: data/raw/<CHEMBL_ID>.csv со столбцами RAW_COLUMNS (формат ждёт scripts/02_standardize.py).
+Filters (API side): standard_relation '=', pchembl_value not null, data_validity_comment empty,
+assay_type B, standard_type in (Ki, IC50). The API has no confidence_score filter on activity, so
+it is applied via a separate query to the assay resource (confidence_score__gte=8, assay_type=B, same target):
+the set of assay_chembl_id is taken, and only activities from those assays are kept. Additionally,
+potential_duplicate == 1 is discarded. If the API is unavailable after retries, the script FAILS (data are not simulated).
+Output: data/raw/<CHEMBL_ID>.csv with columns RAW_COLUMNS (the format expected by scripts/02_standardize.py).
 """
 import argparse
 import sys
@@ -45,21 +45,21 @@ def get_json(url, params=None, session=requests):
             if pause is None:
                 break
             time.sleep(pause)
-    raise ChemblUnavailable(f"ChEMBL недоступен: {last}")
+    raise ChemblUnavailable(f"ChEMBL unavailable: {last}")
 
 
 def paginate(url, params, key, session=requests):
-    """Итерирует записи по страницам (page_meta.next — относительный путь)."""
+    """Iterates over records page by page (page_meta.next is a relative path)."""
     while url:
         d = get_json(url, params, session)
         yield from d[key]
         nxt = d["page_meta"]["next"]
         url = BASE + nxt if nxt else None
-        params = None  # next уже содержит параметры
+        params = None  # next already contains the parameters
 
 
 def parse_activities(records, assay_ok=None):
-    """Список записей activity -> DataFrame RAW_COLUMNS; фильтры повторены на клиенте как страховка."""
+    """List of activity records -> DataFrame RAW_COLUMNS; filters are repeated client-side as a safeguard."""
     rows = []
     for a in records:
         if a.get("standard_relation") != "=" or a.get("pchembl_value") in (None, ""):
@@ -117,7 +117,7 @@ def main():
         try:
             df, n_api, n_as = fetch_target(t, types)
         except ChemblUnavailable as e:
-            sys.exit(f"{t}: {e}. Шаг остановлен, данные не имитируются.")
+            sys.exit(f"{t}: {e}. Step stopped; data are not simulated.")
         df.to_csv(Path(a.out) / f"{t}.csv", index=False)
         name = df["target_name"].iloc[0] if len(df) else "-"
         print(f"{t}\t{name}\t{n_api}\t{n_as}\t{len(df)}\t{df['doc_chembl_id'].nunique()}", flush=True)

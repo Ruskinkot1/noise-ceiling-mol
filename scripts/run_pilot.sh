@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Пилот: 3 задачи x 3 сплита. Простые модели и головы над эмбеддингами — 5 сидов, GNN — 3 сида, только clean.
-# Отклонения от плана (бюджет подбора 3 конфигурации вместо 6, GNN 3 сида) записаны в docs/REPORT.md.
+# Pilot: 3 tasks x 3 splits. Simple models and heads over embeddings: 5 seeds; GNN: 3 seeds; clean only.
+# Deviations from the plan (tuning budget of 3 configurations instead of 6, GNN with 3 seeds) are recorded in docs/REPORT.md.
 set -u
-export DEVICE="${DEVICE:-cpu}"   # cpu | mps | cuda | auto; для mps/cuda лучше NJOBS=1 (один процесс на GPU)
+export DEVICE="${DEVICE:-cpu}"   # cpu | mps | cuda | auto; for mps/cuda NJOBS=1 is preferable (one process per GPU)
 NJOBS="${NJOBS:-4}"
 cd "$(dirname "$0")/.."
 export OMP_NUM_THREADS=1
@@ -15,7 +15,7 @@ done; done
 for t in $TASKS; do jobs+=("clean $t gnn 3 gnn_dmpnn"); done
 printf '%s\n' "${jobs[@]}" | xargs -P "$NJOBS" -I{} bash -c '
   set -- {}; v=$1; t=$2; k=$3; n=$4; shift 4
-  [ -s results/pilot/${v}_${t}_${k}.csv ] && { echo "$v $t $k уже готово, пропуск"; exit 0; }
+  [ -s results/pilot/${v}_${t}_${k}.csv ] && { echo "$v $t $k already done, skipping"; exit 0; }
   python scripts/04_run_benchmark.py --processed data/pilot_$v --emb-dir data/pilot_emb --tasks $t --seeds $n \
     --n-trials 3 --device "${DEVICE:-cpu}" --models "$@" --out results/pilot/${v}_${t}_${k}.csv --pred-out results/pilot/${v}_${t}_${k}.pred.csv \
     > results/pilot/${v}_${t}_${k}.log 2>&1; echo "$v $t $k exit=$?"'

@@ -1,44 +1,44 @@
-# Отсечки обучающих данных моделей для scripts/02b_decontaminate.py.
-# Правило эффективной отсечки (ncmol.decontam.load_cutoffs):
-#   training_cutoff (если документирован)  ->  иначе paper_date (верхняя граница: обучение не позже даты препринта)
-#   ->  иначе сегодняшняя дата («самая поздняя возможная», пометка «не проверено»).
-# Документ (ChEMBL doc_year) сохраняется, только если его год > года эффективной отсечки.
-# Проверено = дата/факт найден в первоисточнике, открытом при составлении файла (2026-10-09).
-# Всё остальное: null / "не проверено".
+# Training-data cutoffs of the models, used by scripts/02b_decontaminate.py.
+# Effective cutoff rule (ncmol.decontam.load_cutoffs):
+#   training_cutoff (if documented)  ->  otherwise paper_date (upper bound: training no later than the preprint date)
+#   ->  otherwise today's date (the "latest possible", flagged "not verified").
+# A document (ChEMBL doc_year) is kept only if its year > the effective cutoff year.
+# Verified = the date/fact was found in the primary source opened while compiling this file (2026-10-09).
+# Everything else: null / "not verified".
 #
-# registry_sources: имена файлов реестра (data/registry/<имя>.csv.gz), которые ИЗВЕСТНО входят в обучающий набор модели
-# (для расчёта доли пересечения). Корпуса предобучения (PubChem, ZINC) в реестр НЕ загружаются (десятки-сотни млн структур),
-# поэтому для них пересечение = «н/д». Пока список пуст, пока не проверены списки fine-tune-наборов в статьях.
+# registry_sources: registry file names (data/registry/<name>.csv.gz) that are KNOWN to be part of the model's training set
+# (used to compute the overlap share). Pretraining corpora (PubChem, ZINC) are NOT loaded into the registry (tens to hundreds of millions of structures),
+# so for them the overlap = "n/a". The list stays empty until the fine-tuning set lists in the papers are checked.
 version: 1
 checked_on: "2026-10-09"
 models:
   chemberta2_77m:
     display: "ChemBERTa-2 (77M-MLM / 77M-MTR)"
-    corpus: "PubChem, до 77M соединений (из аннотации статьи)"
-    corpus_snapshot_date: "не проверено"      # дата снимка PubChem в статье не извлекалась
-    training_cutoff: null                     # не проверено
-    paper_date: 2022-09-05                    # arXiv 2209.01712 v1 (published), проверено через export.arxiv.org API
+    corpus: "PubChem, up to 77M compounds (from the paper abstract)"
+    corpus_snapshot_date: "not verified"      # the PubChem snapshot date was not extracted from the paper
+    training_cutoff: null                     # not verified
+    paper_date: 2022-09-05                    # arXiv 2209.01712 v1 (published), verified via the export.arxiv.org API
     source:
       paper: "https://arxiv.org/abs/2209.01712"
     verified: {corpus: true, paper_date: true, training_cutoff: false}
-    note: "Модель DeepChem/ChemBERTa-77M-MLM на HF: createdAt 2022-03-02 (API HF); это дата репозитория, не отсечка данных."
+    note: "DeepChem/ChemBERTa-77M-MLM model on HF: createdAt 2022-03-02 (HF API); this is the repository date, not a data cutoff."
     registry_sources: []
   molformer_xl:
     display: "MoLFormer-XL"
-    corpus: "PubChem + ZINC, до 1.1B молекул (из аннотации статьи)"
-    corpus_snapshot_date: "не проверено"
-    training_cutoff: null                     # не проверено
-    paper_date: 2022-12-14                    # arXiv 2106.09553: v1 2021-06-17, последняя версия (updated) 2022-12-14 (API arXiv); берём позднюю
+    corpus: "PubChem + ZINC, up to 1.1B molecules (from the paper abstract)"
+    corpus_snapshot_date: "not verified"
+    training_cutoff: null                     # not verified
+    paper_date: 2022-12-14                    # arXiv 2106.09553: v1 2021-06-17, latest version (updated) 2022-12-14 (arXiv API); we take the later one
     source:
       paper: "https://arxiv.org/abs/2106.09553"
-      hf: "https://huggingface.co/ibm-research/MoLFormer-XL-both-10pct"   # карточка: «up to 1.1B molecules from ZINC and PubChem»
+      hf: "https://huggingface.co/ibm-research/MoLFormer-XL-both-10pct"   # model card: "up to 1.1B molecules from ZINC and PubChem"
     verified: {corpus: true, paper_date: true, training_cutoff: false}
-    note: "Какой именно снимок PubChem/ZINC и какая версия статьи соответствует весам XL — не проверено."
+    note: "Which exact PubChem/ZINC snapshot and which paper version correspond to the XL weights is not verified."
     registry_sources: []
-  # --- кандидаты (выбор моделей для бенчмарка в проекте ещё не сделан; корпус не проверялся) ---
+  # --- candidates (the choice of benchmark models has not been made yet; the corpus was not checked) ---
   chemberta_v1:
     display: "ChemBERTa (v1)"
-    corpus: "не проверено"
+    corpus: "not verified"
     training_cutoff: null
     paper_date: 2020-10-23                    # arXiv 2010.09885, updated (API arXiv); v1 2020-10-19
     source: {paper: "https://arxiv.org/abs/2010.09885"}
@@ -46,7 +46,7 @@ models:
     registry_sources: []
   grover:
     display: "GROVER"
-    corpus: "не проверено"
+    corpus: "not verified"
     training_cutoff: null
     paper_date: 2020-10-29                    # arXiv 2007.02835, updated (API arXiv); v1 2020-06-18
     source: {paper: "https://arxiv.org/abs/2007.02835"}
@@ -54,7 +54,7 @@ models:
     registry_sources: []
   molclr:
     display: "MolCLR"
-    corpus: "не проверено"
+    corpus: "not verified"
     training_cutoff: null
     paper_date: 2022-01-17                    # arXiv 2102.10056, updated (API arXiv); v1 2021-02-19
     source: {paper: "https://arxiv.org/abs/2102.10056"}
