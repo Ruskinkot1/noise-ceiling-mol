@@ -1,8 +1,8 @@
-"""Модели: sklearn-головы + собственный D-MPNN на torch (gnn.py). Эмбеддинги — предвычисленные
-(scripts/06_embed_foundation.py), поверх них те же sklearn-головы.
+"""Models: sklearn heads + a custom D-MPNN in torch (gnn.py). Embeddings are precomputed
+(scripts/06_embed_foundation.py), with the same sklearn heads on top of them.
 
-Интерфейс: featurize(name, ...) возвращает 2D-матрицу признаков, а для 'gnn_*' — массив SMILES
-(object), который модель разбирает сама; индексация X[tr] в scripts/04 работает одинаково."""
+Interface: featurize(name, ...) returns a 2D feature matrix, and for 'gnn_*' an array of SMILES
+(object) that the model parses itself; indexing X[tr] in scripts/04 works the same way."""
 from __future__ import annotations
 
 import numpy as np
@@ -17,8 +17,8 @@ from .chem import ecfp
 BASELINE = "ecfp_gbm"
 
 
-# Сетки гиперпараметров. Бюджет подбора ОДИНАКОВ для всех семейств: n_trials случайных конфигураций
-# из сетки, выбор по RMSE на внутренней валидации (20% train), затем дообучение на всём train.
+# Hyperparameter grids. The tuning budget is the SAME for all families: n_trials random configurations
+# from the grid, selected by RMSE on an inner validation set (20% of train), then refit on all of train.
 PARAM_GRID = {
     "gbm": {"learning_rate": [0.03, 0.05, 0.1], "max_iter": [200, 400], "max_leaf_nodes": [15, 31, 63],
             "l2_regularization": [0.0, 1.0]},
@@ -73,7 +73,7 @@ def sample_configs(name: str, n_trials: int, seed: int):
 
 
 def tune_and_fit(name: str, X_tr, y_tr, seed: int, n_trials: int = 6):
-    """Возвращает (обученная модель, лучшая конфигурация). n_trials=0 — гиперпараметры по умолчанию."""
+    """Returns (fitted model, best configuration). n_trials=0 means default hyperparameters."""
     y_tr = np.asarray(y_tr, float)
     if n_trials <= 0:
         return make_model(name, seed).fit(X_tr, y_tr), {}
@@ -91,8 +91,8 @@ def tune_and_fit(name: str, X_tr, y_tr, seed: int, n_trials: int = 6):
 
 
 def featurize(name: str, smiles, mol_ids, emb_dir=None):
-    """'gnn_*' -> SMILES (object-массив); 'ecfp_*' -> ECFP4 counts 2048; 'emb-<model>_*' -> предвычисленный эмбеддинг из emb_dir/<model>.npz
-    (ключи: mol_ids, X)."""
+    """'gnn_*' -> SMILES (object array); 'ecfp_*' -> ECFP4 counts 2048; 'emb-<model>_*' -> precomputed embedding from emb_dir/<model>.npz
+    (keys: mol_ids, X)."""
     if name.startswith("gnn"):
         return np.asarray(list(smiles), dtype=object)
     if name.startswith("ecfp"):

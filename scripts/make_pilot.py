@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Готовит папки пилота data/pilot_raw (неочищенные) и data/pilot_clean (после 02b) для 3 задач."""
+"""Prepares the pilot folders data/pilot_raw (uncleaned) and data/pilot_clean (after 02b) for 3 tasks."""
 import argparse, os, shutil
 import pandas as pd
 
@@ -15,10 +15,10 @@ for name, src in [(f"{a.name}_{v}", {"raw": "data/processed", "clean": "data/pro
     for t in a.tasks:
         for ext in ("molecules", "measurements"):
             shutil.copy(f"{src}/{t}.{ext}.csv", f"{d}/{t}.{ext}.csv")
-    # строки берём из настоящего tasks.csv (там есть target, type и др.); n_mols/n_rep_mols пересчитываем по папке
+    # take rows from the real tasks.csv (it has target, type, etc.); recompute n_mols/n_rep_mols from the folder
     full = pd.read_csv(f"{src}/tasks.csv")
     full = full[full["task"].isin(a.tasks)].copy()
-    meta = pd.read_csv("data/processed/tasks.csv")[["task", "target", "type"]]  # 02b не сохраняет target/type
+    meta = pd.read_csv("data/processed/tasks.csv")[["task", "target", "type"]]  # 02b does not preserve target/type
     full = full.drop(columns=[c for c in ("target", "type") if c in full.columns]).merge(meta, on="task", how="left")
     full = full.reset_index(drop=True)
     for i, t in full["task"].items():

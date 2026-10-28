@@ -3,73 +3,73 @@ min_replicated_mols: 100
 max_abs_pair_diff: 3.0
 chembl_candidates:
 - id: CHEMBL203
-  note: Epidermal growth factor receptor (pref_name проверен по ChEMBL API, SINGLE
+  note: Epidermal growth factor receptor (pref_name verified against the ChEMBL API, SINGLE
     PROTEIN)
 - id: CHEMBL204
-  note: Prothrombin (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Prothrombin (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL205
-  note: Carbonic anhydrase 2 (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Carbonic anhydrase 2 (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL206
-  note: Estrogen receptor (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Estrogen receptor (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL210
-  note: Beta-2 adrenergic receptor (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Beta-2 adrenergic receptor (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL213
-  note: Beta-1 adrenergic receptor (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Beta-1 adrenergic receptor (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL214
-  note: 5-hydroxytryptamine receptor 1A (pref_name проверен по ChEMBL API, SINGLE
+  note: 5-hydroxytryptamine receptor 1A (pref_name verified against the ChEMBL API, SINGLE
     PROTEIN)
 - id: CHEMBL217
-  note: D(2) dopamine receptor (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: D(2) dopamine receptor (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL218
-  note: Cannabinoid receptor 1 (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Cannabinoid receptor 1 (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL224
-  note: 5-hydroxytryptamine receptor 2A (pref_name проверен по ChEMBL API, SINGLE
+  note: 5-hydroxytryptamine receptor 2A (pref_name verified against the ChEMBL API, SINGLE
     PROTEIN)
 - id: CHEMBL228
-  note: Sodium-dependent serotonin transporter (pref_name проверен по ChEMBL API,
+  note: Sodium-dependent serotonin transporter (pref_name verified against the ChEMBL API,
     SINGLE PROTEIN)
 - id: CHEMBL233
-  note: Mu-type opioid receptor (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Mu-type opioid receptor (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL234
-  note: D(3) dopamine receptor (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: D(3) dopamine receptor (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL237
-  note: Kappa-type opioid receptor (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Kappa-type opioid receptor (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL240
-  note: Voltage-gated inwardly rectifying potassium channel KCNH2 (pref_name проверен
-    по ChEMBL API, SINGLE PROTEIN)
+  note: Voltage-gated inwardly rectifying potassium channel KCNH2 (pref_name verified
+    against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL244
-  note: Coagulation factor X (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Coagulation factor X (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL251
-  note: Adenosine receptor A2a (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Adenosine receptor A2a (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL260
-  note: Mitogen-activated protein kinase 14 (pref_name проверен по ChEMBL API, SINGLE
+  note: Mitogen-activated protein kinase 14 (pref_name verified against the ChEMBL API, SINGLE
     PROTEIN)
 - id: CHEMBL279
-  note: Vascular endothelial growth factor receptor 2 (pref_name проверен по ChEMBL
+  note: Vascular endothelial growth factor receptor 2 (pref_name verified against the ChEMBL
     API, SINGLE PROTEIN)
 - id: CHEMBL301
-  note: Cyclin-dependent kinase 2 (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Cyclin-dependent kinase 2 (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL325
-  note: Histone deacetylase 1 (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Histone deacetylase 1 (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL340
-  note: Cytochrome P450 3A4 (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Cytochrome P450 3A4 (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL1824
-  note: Receptor tyrosine-protein kinase erbB-2 (pref_name проверен по ChEMBL API,
+  note: Receptor tyrosine-protein kinase erbB-2 (pref_name verified against the ChEMBL API,
     SINGLE PROTEIN)
 - id: CHEMBL1862
-  note: Tyrosine-protein kinase ABL1 (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Tyrosine-protein kinase ABL1 (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL1902
-  note: Peptidyl-prolyl cis-trans isomerase FKBP1A (pref_name проверен по ChEMBL API,
+  note: Peptidyl-prolyl cis-trans isomerase FKBP1A (pref_name verified against the ChEMBL API,
     SINGLE PROTEIN)
 - id: CHEMBL2971
-  note: Tyrosine-protein kinase JAK2 (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Tyrosine-protein kinase JAK2 (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL4005
   note: Phosphatidylinositol 4,5-bisphosphate 3-kinase catalytic subunit alpha isoform
-    (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+    (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL4822
-  note: Beta-secretase 1 (pref_name проверен по ChEMBL API, SINGLE PROTEIN)
+  note: Beta-secretase 1 (pref_name verified against the ChEMBL API, SINGLE PROTEIN)
 - id: CHEMBL5145
-  note: Serine/threonine-protein kinase B-raf (pref_name проверен по ChEMBL API, SINGLE
+  note: Serine/threonine-protein kinase B-raf (pref_name verified against the ChEMBL API, SINGLE
     PROTEIN)
 standard_types:
 - IC50
@@ -81,8 +81,8 @@ tdc_candidates:
 - HalfLife_Obach
 rejected:
 - id: CHEMBL2095
-  reason: FKBP1A крысы (Rattus norvegicus), 17 строк и 1 документ; заменён на человеческий
+  reason: rat FKBP1A (Rattus norvegicus), 17 rows and 1 document; replaced with the human
     CHEMBL1902
-verification: target_verification_W1/W2/W3.csv в data/raw; ID, не помеченные «не проверено»,
-  сверены по pref_name через ChEMBL API 2026-10-09; версия релиза ChEMBL — не записана
-  (не проверено)
+verification: target_verification_W1/W2/W3.csv in data/raw; IDs not marked "not verified"
+  were checked by pref_name via the ChEMBL API on 2026-10-09; the ChEMBL release version was not recorded
+  (not verified)

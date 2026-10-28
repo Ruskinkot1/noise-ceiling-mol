@@ -1,4 +1,4 @@
-"""Тесты деконтаминации на синтетике (без сети, без data/)."""
+"""Decontamination tests on synthetic data (no network, no data/)."""
 import datetime as dt
 import runpy
 import sys
@@ -12,8 +12,8 @@ from ncmol.decontam import (aggregate_molecules, annotate, apply_year_filter, de
                             load_registry, max_similarity, model_overlap, std_keys)
 
 IBU = "CC(C)Cc1ccc(cc1)C(C)C(=O)O"
-IBU_ANALOG = "CCC(C)Cc1ccc(cc1)C(C)C(=O)O"  # Tanimoto ECFP4 ~0.71 к ибупрофену
-IBU_STEREO = "C[C@H](C(=O)O)c1ccc(CC(C)C)cc1"  # тот же ik14, другой полный ключ
+IBU_ANALOG = "CCC(C)Cc1ccc(cc1)C(C)C(=O)O"  # Tanimoto ECFP4 ~0.71 to ibuprofen
+IBU_STEREO = "C[C@H](C(=O)O)c1ccc(CC(C)C)cc1"  # same ik14, different full key
 CAFF = "Cn1cnc2c1c(=O)n(C)c(=O)n2C"
 NAPH = "c1ccc2ccccc2c1"
 PARA = "CC(=O)Nc1ccc(O)cc1"
@@ -34,7 +34,7 @@ def make_registry(tmp_path):
 
 
 def make_data():
-    """5 молекул: ibu_stereo (ik14 совпал, полный нет), caff (точно), analog (близкий), naph и para (чистые)."""
+    """5 molecules: ibu_stereo (ik14 matches, full key does not), caff (exact), analog (close), naph and para (clean)."""
     smi = {"ibu_stereo": IBU_STEREO, "caff": CAFF, "analog": IBU_ANALOG, "naph": NAPH, "para": PARA}
     rows = []
     for name, s in smi.items():
@@ -81,19 +81,19 @@ def test_decontaminate_task_loss_log(tmp_path):
     steps = {r["step"]: r for r in log}
     assert steps["raw"]["mols_left"] == 5 and steps["raw"]["meas_left"] == 10
     assert steps["exact_inchikey_full"]["mols_removed"] == 1       # caffeine
-    assert steps["exact_ik14(доп.)"]["mols_removed"] == 1          # ibuprofen stereo
+    assert steps["exact_ik14(extra)"]["mols_removed"] == 1          # ibuprofen stereo
     assert steps[f"near_tanimoto>{THR}"]["mols_removed"] == 1      # analog
-    assert steps["year>2020"]["meas_removed"] == 2                 # D1(2015) у двух оставшихся молекул
+    assert steps["year>2020"]["meas_removed"] == 2                 # D1(2015) for the two remaining molecules
     assert sorted(co["smiles"]) == sorted([standardize(NAPH)[0], standardize(PARA)[0]])
     assert set(cm["year"]) == {2024}
-    # баланс: потери + остаток = исходное
+    # balance: removed + remainder = original
     assert sum(r["meas_removed"] for r in log) + log[-1]["meas_left"] == 10
     assert (co["n_docs"] == 1).all() and (co["first_year"] == 2024).all()
 
 
 def test_year_filter_boundary():
     meas, _ = make_data()
-    assert set(apply_year_filter(meas, 2015)["year"]) == {2024}   # год отсечки включительно считается виденным
+    assert set(apply_year_filter(meas, 2015)["year"]) == {2024}   # the cutoff year is inclusive and counts as seen
     assert len(apply_year_filter(meas, 2030)) == 0
 
 
@@ -132,11 +132,11 @@ def test_script_end_to_end(tmp_path, monkeypatch, capsys):
     base = ["02b", "--processed", str(proc), "--raw-out", str(tmp_path / "raw"), "--clean-out", str(tmp_path / "clean"),
             "--registry", str(reg_dir), "--cutoffs", str(cut), "--endpoints", str(tmp_path / "none.yaml"),
             "--threshold", str(THR), "--n-jobs", "1"]
-    # pilot: ничего не пишет
+    # pilot: writes nothing
     monkeypatch.setattr(sys, "argv", base + ["--pilot"])
     assert mod["main"]() == 0
     assert "PILOT" in capsys.readouterr().out and not (tmp_path / "clean").exists()
-    # полный прогон; m2 без даты -> сегодня -> всё отфильтровано по году; явная отсечка 2020 -> остаются 2024
+    # full run; m2 has no date -> today -> everything filtered by year; explicit cutoff 2020 -> 2024 remains
     monkeypatch.setattr(sys, "argv", base + ["--cutoff-year", "2020"])
     assert mod["main"]() == 0
     raw = pd.read_csv(tmp_path / "raw/T1_IC50.measurements.csv")
@@ -145,7 +145,7 @@ def test_script_end_to_end(tmp_path, monkeypatch, capsys):
     loss = pd.read_csv(tmp_path / "clean/decontam_loss.csv")
     assert list(loss["step"])[0] == "raw" and loss["task"].nunique() == 1
     mod_rows = pd.read_csv(tmp_path / "clean/decontam_models.csv").set_index("model")
-    assert str(mod_rows.loc["m1", "test_overlap_share"]) == "0.2" and mod_rows.loc["m2", "test_overlap_share"] == "н/д"
+    assert str(mod_rows.loc["m1", "test_overlap_share"]) == "0.2" and mod_rows.loc["m2", "test_overlap_share"] == "unavailable"
     assert not mod_rows.loc["m2", "verified"]
 
 

@@ -1,20 +1,20 @@
-# Пилот: результаты (3 задачи, очищенные данные)
+# Pilot: results (3 tasks, cleaned data)
 
-**Это пилот, а не итог.** Задачи: CHEMBL237 IC50 (каппа-опиоидный), CHEMBL206 IC50 (рецептор эстрогена), CHEMBL204 Ki (тромбин).
-Сплиты random/scaffold/temporal; простые модели и головы над эмбеддингами — 5 сидов; D-MPNN — 3 сида и только одна задача из трёх
-(на двух остальных задание остановил лимит времени), поэтому GNN в выводах не участвует.
-Отклонения от плана: подбор 3 конфигурации вместо 6; очистка без фильтра по году документа (с ним 0 задач проходят порог).
-Доля потолка = (RMSE_mean − RMSE_model)/(RMSE_mean − RMSE_floor); 0 — предсказание среднего, 1 — потолок шума. ДИ — бутстрэп по молекулам (95%).
-Версия релиза ChEMBL не записана; фундаментальные модели заморожены (эмбеддинг + GBM-голова), без дообучения.
+**This is a pilot, not a final result.** Tasks: CHEMBL237 IC50 (kappa opioid), CHEMBL206 IC50 (estrogen receptor), CHEMBL204 Ki (thrombin).
+Random/scaffold/temporal splits; simple models and heads on top of embeddings — 5 seeds; D-MPNN — 3 seeds and only one task of the three
+(on the other two the job was stopped by the time limit), so the GNN does not take part in the conclusions.
+Deviations from the plan: tuning of 3 configurations instead of 6; cleaning without the document-year filter (with it, 0 tasks pass the threshold).
+Fraction of ceiling = (RMSE_mean − RMSE_model)/(RMSE_mean − RMSE_floor); 0 — predicting the mean, 1 — the noise ceiling. CI — bootstrap over molecules (95%).
+The ChEMBL release version was not recorded; the foundation models are frozen (embedding + GBM head), without fine-tuning.
 
-## Потолок шума (очищенные данные)
+## Noise ceiling (cleaned data)
 | task           |   n_mols_rep |   sigma |   rmse_floor |   r2_max |
 |:---------------|-------------:|--------:|-------------:|---------:|
 | CHEMBL237_IC50 |          111 |   0.694 |        0.674 |    0.627 |
 | CHEMBL206_IC50 |          132 |   0.527 |        0.518 |    0.854 |
 | CHEMBL204_Ki   |          133 |   0.312 |        0.308 |    0.959 |
 
-## Таблица «модель × сплит × доля потолка» (среднее по 3 задачам; у GNN n_tasks=1)
+## Table "model × split × fraction of ceiling" (mean over 3 tasks; for the GNN n_tasks=1)
 | split    | model                      |   n_tasks |   rmse |     r2 |   frac_ceiling |   frac_ceiling_mol_lo |   frac_ceiling_mol_hi |
 |:---------|:---------------------------|----------:|-------:|-------:|---------------:|----------------------:|----------------------:|
 | random   | ecfp_rf                    |         3 |  0.740 |  0.674 |          0.739 |                 0.678 |                 0.774 |
@@ -36,8 +36,8 @@
 | temporal | ecfp_gbm                   |         3 |  1.236 |  0.078 |          0.193 |                 0.167 |                 0.265 |
 | temporal | ecfp_mlp                   |         3 |  1.721 | -0.735 |         -0.260 |                -0.372 |                -0.174 |
 
-## Разница с ECFP+GBM по доле потолка (модель − ECFP+GBM)
-`inside_noise_tasks` = разница лежит внутри шума на уровне задач. Критерий Уилкоксона не считается: задач меньше 6, p-значений нет.
+## Difference from ECFP+GBM in fraction of ceiling (model − ECFP+GBM)
+`inside_noise_tasks` = the difference lies within noise at the task level. The Wilcoxon test is not computed: there are fewer than 6 tasks, so there are no p-values.
 | split    | model                      |   n_tasks |   mean_diff_frac_ceiling |   diff_mol_lo |   diff_mol_hi |   n_better | inside_noise_tasks   |
 |:---------|:---------------------------|----------:|-------------------------:|--------------:|--------------:|-----------:|:---------------------|
 | random   | ecfp_mlp                   |         3 |                   -0.337 |        -0.448 |        -0.270 |          0 | True                 |
@@ -56,8 +56,8 @@
 | temporal | emb-molformer-xl-10pct_gbm |         3 |                    0.075 |         0.003 |         0.087 |          1 | True                 |
 | temporal | gnn_dmpnn                  |         1 |                    0.454 |         0.269 |         0.540 |          1 | True                 |
 
-## Утечка: неочищенные против очищенных данных (доля потолка)
-Очистка удалила около 3% молекул этих задач.
+## Leakage: raw vs cleaned data (fraction of ceiling)
+Cleaning removed about 3% of the molecules of these tasks.
 | split    | model                      |   frac_ceiling_clean |   frac_ceiling_raw |   raw_minus_clean |
 |:---------|:---------------------------|---------------------:|-------------------:|------------------:|
 | random   | ecfp_gbm                   |                0.707 |              0.719 |             0.012 |
@@ -76,9 +76,9 @@
 | temporal | emb-chemberta-77m-mlm_gbm  |                0.311 |              0.309 |            -0.002 |
 | temporal | emb-molformer-xl-10pct_gbm |                0.268 |              0.279 |             0.011 |
 
-## Что можно и что нельзя утверждать
-- На этих 3 задачах (random, scaffold) ECFP+RF и ECFP+GBM лучше замороженных ChemBERTa-77M и MoLFormer-XL (разница 0,09–0,11 доли потолка, ДИ по молекулам не включает 0). ECFP+RF чуть лучше ECFP+GBM, то есть ECFP+GBM не самая сильная базовая линия: сравнивать нужно с лучшей из ECFP-моделей.
-- На временном сплите порядок обратный: головы над эмбеддингами выше ECFP+GBM (+0,12 и +0,07), но все модели на временном сплите далеко от потолка (доля 0,2–0,3), а на 3 задачах результат нестабилен (лучше в 2 и 1 из 3 задач).
-- На уровне задач ни одно различие не отличается от шума (`inside_noise_tasks`), тесты по задачам невозможны при n=3. Это не доказательство «разницы нет», а недостаточная мощность.
-- Утечка из бенчмарков на этих задачах не обнаружена (изменения доли потолка в пределах ±0,01–0,04, кроме ECFP+GBM на временном сплите, +0,07). Эти задачи — не самые пересекающиеся с бенчмарками (hERG, BACE1 потеряли много больше).
-- Нельзя обобщать на 17 задач, на дообученные модели и на другие эмбеддинги. D-MPNN не оценена.
+## What can and cannot be claimed
+- On these 3 tasks (random, scaffold), ECFP+RF and ECFP+GBM are better than the frozen ChemBERTa-77M and MoLFormer-XL (a difference of 0.09–0.11 in fraction of ceiling; the CI over molecules does not include 0). ECFP+RF is slightly better than ECFP+GBM, i.e. ECFP+GBM is not the strongest baseline: comparison should be made against the best of the ECFP models.
+- On the temporal split the order is reversed: heads on top of embeddings are above ECFP+GBM (+0.12 and +0.07), but all models on the temporal split are far from the ceiling (fraction 0.2–0.3), and with 3 tasks the result is unstable (better in 2 and 1 of 3 tasks).
+- At the task level, no difference is distinguishable from noise (`inside_noise_tasks`); task-level tests are impossible at n=3. This is not proof that "there is no difference", but insufficient power.
+- No leakage from benchmarks was detected on these tasks (changes in fraction of ceiling within ±0.01–0.04, except ECFP+GBM on the temporal split, +0.07). These tasks are not the ones most overlapping with benchmarks (hERG, BACE1 lost far more).
+- Results cannot be generalized to 17 tasks, to fine-tuned models, or to other embeddings. D-MPNN was not evaluated.

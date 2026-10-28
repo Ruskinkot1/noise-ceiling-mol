@@ -1,28 +1,28 @@
-# paper/ — статья для NeurIPS Datasets & Benchmarks (черновик W7)
+# paper/ — NeurIPS Datasets & Benchmarks paper (draft W7)
 
-## Структура
-- `main.tex` — каркас; подключает `neurips_2026.sty`, если он лежит рядом, иначе `article` (пометка «заменить на официальный стиль»).
-- `sections/`: abstract, introduction (объяснения для химиков и ML-специалистов), related (противопоставление «Are we fitting data or noise?»), data, ceiling (формулы из `src/ncmol/ceiling.py` и `docs/experiment_design.md`), benchmark, results (только заглушки), recommendations (MDE, протокол, чек-лист), limitations, datasheet.
+## Structure
+- `main.tex` — skeleton; loads `neurips_2026.sty` if it is present alongside, otherwise `article` (with a "replace with the official style" note).
+- `sections/`: abstract, introduction (explanations for chemists and ML specialists), related (contrast with "Are we fitting data or noise?"), data, ceiling (formulas from `src/ncmol/ceiling.py` and `docs/experiment_design.md`), benchmark, results (placeholders only), recommendations (MDE, protocol, checklist), limitations, datasheet.
 
-## Проверено при написании (2026-10-09)
-- Архив стиля `https://media.neurips.cc/Conferences/NeurIPS2026/Formatting_Instructions_For_NeurIPS_2026.zip` скачивается (HTTP 200), внутри `neurips_2026.sty`, `neurips_2026.tex`, `checklist.tex`. Ссылка взята со страницы NeurIPS 2026 CFP. В репозиторий файлы НЕ копировались; опции D&B (в т.ч. режим двойной слепоты) не проверены.
-- Страница D&B 2025 получена: Croissant-метаданные, хостинг (Dataverse/Kaggle/HF/OpenML), доступность кода и данных для рецензентов. Страница D&B 2026 вернула 404 -> требования 2026, лимит страниц и чек-лист: **не проверено**.
-- Лицензия ChEMBL: FTP README говорит CC BY-SA 3.0 Unported (проверено); последний релиз на README — chembl_37 от 01/05/2026, используемый релиз не выбран.
+## Verified at the time of writing (2026-10-09)
+- The style archive `https://media.neurips.cc/Conferences/NeurIPS2026/Formatting_Instructions_For_NeurIPS_2026.zip` can be downloaded (HTTP 200) and contains `neurips_2026.sty`, `neurips_2026.tex`, `checklist.tex`. The link was taken from the NeurIPS 2026 CFP page. The files were NOT copied into the repository; the D&B options (including the double-blind mode) have not been verified.
+- The D&B 2025 page was retrieved: Croissant metadata, hosting (Dataverse/Kaggle/HF/OpenML), code and data availability for reviewers. The D&B 2026 page returned 404 -> the 2026 requirements, page limit, and checklist: **not verified**.
+- ChEMBL license: the FTP README states CC BY-SA 3.0 Unported (verified); the latest release in the README is chembl_37 dated 01/05/2026; the release to be used has not been chosen.
 
 ## TBD
-Все числа результатов, релиз/дата ChEMBL, фильтры, число задач, список бенчмарков для деконтаминации, выбор фундаментальных моделей, бюджет подбора гиперпараметров, поправка на аттенюацию, метод поправки на множественные сравнения, валидация формулы MDE, авторы, лицензия кода, DOI/хостинг/Croissant.
+All result numbers, the ChEMBL release/date, filters, the number of tasks, the list of benchmarks for decontamination, the choice of foundation models, the hyperparameter-tuning budget, the attenuation correction, the multiple-comparison correction method, validation of the MDE formula, authors, code license, DOI/hosting/Croissant.
 
-## Нужные ссылки для references.bib (W8). Сейчас в тексте `\cite{TODO-...}`
-- TODO-chembl — ChEMBL (статья базы; выбрать актуальную)
+## References needed for references.bib (W8). Currently the text contains `\cite{TODO-...}`
+- TODO-chembl — ChEMBL (the database paper; choose the current one)
 - TODO-landrum-riniker — Landrum, Riniker, JCIM 64(5):1560, DOI 10.1021/acs.jcim.4c00049
-- TODO-fitting-data-or-noise — «Are we fitting data or noise?», Faraday Discuss. 256 (2025), DOI-фрагмент d4fd00091a; авторы не проверены
-- TODO-mixed-ic50-2013 — «Comparability of Mixed IC50 Data», PLoS ONE 2013; авторы не проверены
-- TODO-mmp-noise-2025 — J Cheminf 2025, DOI 10.1186/s13321-025-00956-y; название не проверено
+- TODO-fitting-data-or-noise — "Are we fitting data or noise?", Faraday Discuss. 256 (2025), DOI fragment d4fd00091a; authors not verified
+- TODO-mixed-ic50-2013 — "Comparability of Mixed IC50 Data", PLoS ONE 2013; authors not verified
+- TODO-mmp-noise-2025 — J Cheminf 2025, DOI 10.1186/s13321-025-00956-y; title not verified
 - TODO-pretrained-embeddings-benchmark — arXiv 2508.06199
-- TODO-moleculeace — MoleculeACE (JCIM ~2022); авторы не проверены
-- TODO-arxiv-2605-17265, TODO-arxiv-2605-10722 — препринты 2026, не проверены
-- TODO-chemprop, TODO-chemberta, TODO-molformer — статьи моделей (искать оригиналы)
-Когда появится `references.bib`, заменить ключи `TODO-*` на реальные; main.tex подключит bib автоматически.
+- TODO-moleculeace — MoleculeACE (JCIM ~2022); authors not verified
+- TODO-arxiv-2605-17265, TODO-arxiv-2605-10722 — 2026 preprints, not verified
+- TODO-chemprop, TODO-chemberta, TODO-molformer — the model papers (find the originals)
+Once `references.bib` exists, replace the `TODO-*` keys with real ones; main.tex will pick up the bib automatically.
 
-## Сборка
-В среде нет pdflatex/latexmk/tectonic (`which` пусто) — **не собиралось**. Локально: положить `neurips_2026.sty` в `paper/`, затем `pdflatex main && bibtex main && pdflatex main && pdflatex main`.
+## Build
+The environment has no pdflatex/latexmk/tectonic (`which` returns nothing) — **not built**. Locally: put `neurips_2026.sty` in `paper/`, then `pdflatex main && bibtex main && pdflatex main && pdflatex main`.

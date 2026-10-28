@@ -1,4 +1,4 @@
-"""Сплиты: случайный, скэффолдный (Murcko), временной. Возвращают (train_idx, test_idx)."""
+"""Splits: random, scaffold (Murcko), temporal. Return (train_idx, test_idx)."""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -17,7 +17,7 @@ def random_split(df: pd.DataFrame, seed: int, test_frac: float = 0.2):
 
 
 def scaffold_split(df: pd.DataFrame, seed: int, test_frac: float = 0.2):
-    """Скэффолды целиком в train или test; порядок групп перемешан по сиду (крупные группы — в train)."""
+    """Scaffolds go entirely to train or to test; group order is shuffled by seed (large groups go to train)."""
     groups = defaultdict(list)
     for i, s in enumerate(df["smiles"]):
         groups[scaffold(s)].append(i)
@@ -28,13 +28,13 @@ def scaffold_split(df: pd.DataFrame, seed: int, test_frac: float = 0.2):
     train, test = [], []
     for k in keys:
         g = groups[k]
-        # группа уходит в тест, если помещается; иначе в train (большие скэффолды всегда в train)
+        # the group goes to test if it fits; otherwise to train (large scaffolds always go to train)
         (test if len(test) + len(g) <= n_test else train).extend(g)
     return np.sort(train), np.sort(test)
 
 
 def temporal_split(df: pd.DataFrame, seed: int = 0, test_frac: float = 0.2):
-    """Тест = самые поздние по году первой публикации молекулы (столбец first_year). Детерминирован."""
+    """Test = molecules with the latest year of first publication (column first_year). Deterministic."""
     order = np.argsort(df["first_year"].to_numpy(), kind="stable")
     k = int(round(len(df) * test_frac))
     return np.sort(order[:-k]), np.sort(order[-k:])

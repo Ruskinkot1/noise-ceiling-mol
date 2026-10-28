@@ -1,24 +1,24 @@
 #!/usr/bin/env python
-"""Шаг 5. «Доля потолка» и сравнение с базовой линией ECFP+GBM.
+"""Step 5. "Fraction of ceiling" and comparison with the ECFP+GBM baseline.
 
-Вход:
+Input:
   results/benchmark.csv   — scripts/04 (task, split, seed, model, rmse, mae, r2, spearman, rmse_mean,
                             n_test, test_mean_inv_ndocs, ...)
   results/ceilings.csv    — scripts/03 (task, sigma, var_y, sigma_lo, sigma_hi, ...)
-  results/predictions.csv|parquet (НЕОБЯЗАТЕЛЬНО; схема: task, split, seed, model, mol_id, pred
-                            [+ y, n_docs, y_train_mean]) — нужен для ДИ по молекулам. Без него
-                            выдаются только точечные оценки + разброс по сидам/задачам.
+  results/predictions.csv|parquet (OPTIONAL; schema: task, split, seed, model, mol_id, pred
+                            [+ y, n_docs, y_train_mean]) — needed for per-molecule CIs. Without it
+                            only point estimates + spread across seeds/tasks are produced.
 
-ОСНОВНАЯ метрика: frac_ceiling = (RMSE_mean - RMSE_model) / (RMSE_mean - RMSE_floor),
-RMSE_floor = sigma*sqrt(mean(1/n_docs)) по тест-молекулам. 0 = среднее по train, 1 = потолок.
-Вспомогательные: frac_rmse = RMSE_floor/RMSE, frac_r2 = R2/R2_max, frac_ceiling_true (поправка на аттенюацию).
+PRIMARY metric: frac_ceiling = (RMSE_mean - RMSE_model) / (RMSE_mean - RMSE_floor),
+RMSE_floor = sigma*sqrt(mean(1/n_docs)) over test molecules. 0 = train mean, 1 = ceiling.
+Auxiliary: frac_rmse = RMSE_floor/RMSE, frac_r2 = R2/R2_max, frac_ceiling_true (attenuation correction).
 
-Выход (results/):
-  benchmark_with_ceiling.csv   — строки benchmark + потолок и все доли
-  per_task_fraction.csv        — task x split x model: доля потолка (+ ДИ по молекулам, если есть предсказания)
-  leaderboard.csv              — split x model: среднее по задачам и ДИ (по молекулам; по задачам)
-  paired_vs_baseline.csv       — модель vs ECFP+GBM: Δ доли потолка, Уилкоксон по задачам,
-                                 p с поправкой Холма (основная) и BH (чувствительность), парный бутстрэп
+Output (results/):
+  benchmark_with_ceiling.csv   — benchmark rows + ceiling and all fractions
+  per_task_fraction.csv        — task x split x model: fraction of ceiling (+ per-molecule CI if predictions exist)
+  leaderboard.csv              — split x model: mean over tasks and CI (over molecules; over tasks)
+  paired_vs_baseline.csv       — model vs ECFP+GBM: delta of fraction of ceiling, Wilcoxon over tasks,
+                                 p with Holm correction (primary) and BH (sensitivity), paired bootstrap
 """
 import argparse
 from pathlib import Path
@@ -30,7 +30,7 @@ from ncmol import metrics, stats
 from ncmol.models import BASELINE
 
 ROOT = Path(__file__).resolve().parents[1]
-LOW_HEADROOM = 0.2  # параметр: (RMSE_mean − RMSE_floor)/RMSE_mean < 0.2 -> «доля потолка неустойчива»
+LOW_HEADROOM = 0.2  # parameter: (RMSE_mean - RMSE_floor)/RMSE_mean < 0.2 -> "fraction of ceiling is unstable"
 SUMMARY = ["rmse", "r2", "frac_ceiling", "frac_rmse", "frac_r2", "frac_ceiling_true", "headroom"]
 
 
@@ -45,10 +45,10 @@ def add_ceiling(b: pd.DataFrame, c: pd.DataFrame) -> pd.DataFrame:
     att = [metrics.attenuation_corrected(r, m, f) for r, m, f in zip(b["rmse"], b["rmse_mean"], b["rmse_floor"])]
     b["frac_ceiling_true"] = [a["frac_ceiling_true"] for a in att]
     b["below_floor"] = [a["below_floor"] for a in att]
-    # запас до потолка: если мал, знаменатель доли потолка близок к 0 и она неустойчива
+    # headroom to the ceiling: if small, the denominator of the fraction of ceiling is near 0 and the fraction is unstable
     b["headroom"] = (b["rmse_mean"] - b["rmse_floor"]) / b["rmse_mean"]
     b["low_headroom"] = b["headroom"] < LOW_HEADROOM
-    for tag in ("lo", "hi"):  # чувствительность к неопределённости sigma (границы бутстрэпа из scripts/03)
+    for tag in ("lo", "hi"):  # sensitivity to sigma uncertainty (bootstrap bounds from scripts/03)
         if f"sigma_{tag}" in b.columns:
             fl = b[f"sigma_{tag}"] * np.sqrt(b["test_mean_inv_ndocs"])
             b[f"frac_ceiling_at_sigma_{tag}"] = (b["rmse_mean"] - b["rmse"]) / (b["rmse_mean"] - fl)
@@ -56,7 +56,7 @@ def add_ceiling(b: pd.DataFrame, c: pd.DataFrame) -> pd.DataFrame:
 
 
 def bootstrap_tables(pred: pd.DataFrame, ceil: pd.DataFrame, n_boot: int, alpha: float, seed: int):
-    """Возвращает (per_task DataFrame, draws[(split,model)] -> (n_tasks, B), diffs[(split,model)])."""
+    """Returns (per_task DataFrame, draws[(split,model)] -> (n_tasks, B), diffs[(split,model)])."""
     sig = ceil.set_index("task")["sigma"]
     rows, draws, ddraws = [], {}, {}
     for (t, sp), g in pred.groupby(["task", "split"]):
@@ -89,8 +89,8 @@ def main():
     ap.add_argument("--n-boot", type=int, default=500)
     ap.add_argument("--alpha", type=float, default=0.05)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--min-tasks", type=int, default=6, help="минимум задач для Уилкоксона")
-    ap.add_argument("--correction", choices=["holm", "bh"], default="holm", help="какая поправка идёт в столбец p_adj")
+    ap.add_argument("--min-tasks", type=int, default=6, help="minimum number of tasks for Wilcoxon")
+    ap.add_argument("--correction", choices=["holm", "bh"], default="holm", help="which correction goes into the p_adj column")
     a = ap.parse_args()
     r = Path(a.results)
     c = pd.read_csv(r / "ceilings.csv")
@@ -103,18 +103,18 @@ def main():
     boot = pd.DataFrame()
     draws = ddraws = {}
     if pred is None:
-        print("results/predictions.* не найден: ДИ по молекулам не считаются (схема — docs/experiment_design.md).")
+        print("results/predictions.* not found: per-molecule CIs are not computed (schema: docs/experiment_design.md).")
     else:
         boot, draws, ddraws = bootstrap_tables(pred, c, a.n_boot, a.alpha, a.seed)
         per_task = per_task.merge(boot, on=["task", "split", "model"], how="left")
     per_task.to_csv(r / "per_task_fraction.csv", index=False)
 
-    # ---- лидерборд: среднее по задачам (равный вес задач)
+    # ---- leaderboard: mean over tasks (equal task weights)
     lb_rows = []
     rng = np.random.default_rng(a.seed + 7)
     for (sp, m), g in per_task.groupby(["split", "model"]):
         row = {"split": sp, "model": m, "n_tasks": g["task"].nunique(), **{k: g[k].mean() for k in cols}}
-        # разброс по задачам: бутстрэп задач (учёт того, что набор задач — тоже выборка)
+        # spread over tasks: task bootstrap (accounts for the task set also being a sample)
         v = g["frac_ceiling"].to_numpy()
         if len(v) >= 2:
             bt = rng.choice(v, size=(a.n_boot, len(v)), replace=True).mean(1)
@@ -123,18 +123,18 @@ def main():
             if f"frac_ceiling_at_sigma_{tag}" in b.columns:
                 row[f"frac_ceiling_at_sigma_{tag}"] = b[(b.split == sp) & (b.model == m)].groupby("task")[f"frac_ceiling_at_sigma_{tag}"].mean().mean()
         if "frac_ceiling_pooled" in g.columns:
-            row["frac_ceiling_pooled"] = g["frac_ceiling_pooled"].mean()  # оценка, к которой относятся ДИ по молекулам
+            row["frac_ceiling_pooled"] = g["frac_ceiling_pooled"].mean()  # the estimate to which the per-molecule CIs refer
         d = draws.get((sp, m))
         if d:
-            mat = np.vstack(list(d.values()))  # (n_tasks, B): ресэмплинг молекул внутри каждой задачи независим
-            mm = np.nanmean(mat, 0)  # ресэмплы с RMSE_mean <= RMSE_floor дают NaN и пропускаются
+            mat = np.vstack(list(d.values()))  # (n_tasks, B): molecule resampling within each task is independent
+            mm = np.nanmean(mat, 0)  # resamples with RMSE_mean <= RMSE_floor give NaN and are skipped
             row["frac_ceiling_mol_lo"], row["frac_ceiling_mol_hi"] = stats.percentile_ci(mm, a.alpha)
         lb_rows.append(row)
     lb = pd.DataFrame(lb_rows).sort_values(["split", "frac_ceiling"], ascending=[True, False])
     lb.to_csv(r / "leaderboard.csv", index=False)
     print(lb.to_string(index=False))
 
-    # ---- парное сравнение с базовой линией: Уилкоксон по задачам + парный бутстрэп
+    # ---- paired comparison with the baseline: Wilcoxon over tasks + paired bootstrap
     pv = per_task.pivot_table(index=["split", "task"], columns="model", values=["frac_ceiling", "rmse"])
     prow = []
     for (sp, m), g in per_task.groupby(["split", "model"]):
@@ -160,7 +160,7 @@ def main():
         pr["p_holm"] = stats.holm(pr["wilcoxon_p"])
         pr["p_bh"] = stats.benjamini_hochberg(pr["wilcoxon_p"])
         pr["p_adj"] = pr["p_holm" if a.correction == "holm" else "p_bh"]
-        pr["inside_noise_tasks"] = ~(pr["p_adj"] < a.alpha)  # NaN -> внутри шума (недостаточно задач/нет эффекта)
+        pr["inside_noise_tasks"] = ~(pr["p_adj"] < a.alpha)  # NaN -> inside noise (too few tasks / no effect)
     pr.to_csv(r / "paired_vs_baseline.csv", index=False)
     print(pr.to_string(index=False))
 

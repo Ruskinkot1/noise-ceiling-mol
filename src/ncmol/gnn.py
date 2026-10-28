@@ -1,8 +1,8 @@
-"""D-MPNN (Yang et al. 2019, направленные рёбра) на чистом torch. Регрессия pActivity, CPU.
+"""D-MPNN (Yang et al. 2019, directed edges) in pure torch. pActivity regression, CPU.
 
-Интерфейс sklearn: fit(X, y), predict(X), где X — массив SMILES (а не матрица признаков).
-Детерминизм: сид -> torch.manual_seed + фиксированные перестановки (np.random.default_rng(seed)).
-Ранняя остановка по валидации (val_frac от train), лучшие веса восстанавливаются.
+sklearn interface: fit(X, y), predict(X), where X is an array of SMILES (not a feature matrix).
+Determinism: seed -> torch.manual_seed + fixed permutations (np.random.default_rng(seed)).
+Early stopping on validation (val_frac of train); the best weights are restored.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from .device import resolve_device
 
 RDLogger.DisableLog("rdApp.*")
 
-_ELEMS = [6, 7, 8, 9, 15, 16, 17, 35, 53, 5, 14, 34]  # остальные -> "other"
+_ELEMS = [6, 7, 8, 9, 15, 16, 17, 35, 53, 5, 14, 34]  # the rest -> "other"
 _HYB = [Chem.HybridizationType.SP, Chem.HybridizationType.SP2, Chem.HybridizationType.SP3]
 _BT = [Chem.BondType.SINGLE, Chem.BondType.DOUBLE, Chem.BondType.TRIPLE, Chem.BondType.AROMATIC]
 
@@ -44,8 +44,8 @@ BOND_DIM = len(bond_features(Chem.MolFromSmiles("CC").GetBondWithIdx(0)))
 
 
 def mol_graph(smiles: str):
-    """-> (x[n,ATOM_DIM], edge_src[e], edge_dst[e], edge_attr[e,BOND_DIM], rev[e]); e = 2*число связей.
-    Невалидный SMILES / пустая молекула -> один нулевой атом без рёбер."""
+    """-> (x[n,ATOM_DIM], edge_src[e], edge_dst[e], edge_attr[e,BOND_DIM], rev[e]); e = 2*number of bonds.
+    Invalid SMILES / empty molecule -> a single zero atom with no edges."""
     mol = Chem.MolFromSmiles(smiles) if isinstance(smiles, str) else None
     if mol is None or mol.GetNumAtoms() == 0:
         return (np.zeros((1, ATOM_DIM), np.float32), np.zeros(0, np.int64), np.zeros(0, np.int64),
@@ -55,7 +55,7 @@ def mol_graph(smiles: str):
     for b in mol.GetBonds():
         i, j, f = b.GetBeginAtomIdx(), b.GetEndAtomIdx(), bond_features(b)
         src += [i, j]; dst += [j, i]; attr += [f, f]
-    # рёбра добавлены парами (2k, 2k+1): обратное ребро = индекс ^ 1
+    # edges are added in pairs (2k, 2k+1): reverse edge = index ^ 1
     rev = np.arange(len(src), dtype=np.int64) ^ 1
     return (x, np.array(src, np.int64), np.array(dst, np.int64),
             np.array(attr, np.float32).reshape(-1, BOND_DIM), rev)
@@ -93,8 +93,8 @@ class DMPNN(nn.Module):
         h0 = torch.relu(self.w_i(torch.cat([x[src], attr], 1)))
         h = h0
         for _ in range(self.depth - 1):
-            a = torch.zeros(n, h.shape[1]).index_add_(0, dst, h)   # сумма входящих сообщений в атом
-            m = a[src] - h[rev]                                     # без обратного ребра
+            a = torch.zeros(n, h.shape[1]).index_add_(0, dst, h)   # sum of incoming messages into the atom
+            m = a[src] - h[rev]                                     # excluding the reverse edge
             h = self.drop(torch.relu(h0 + self.w_h(m)))
         a = torch.zeros(n, h.shape[1]).index_add_(0, dst, h)
         hv = self.drop(torch.relu(self.w_o(torch.cat([x, a], 1))))
@@ -104,14 +104,14 @@ class DMPNN(nn.Module):
 
 
 class DMPNNRegressor:
-    """sklearn-подобный регрессор. X — SMILES (список/массив строк)."""
+    """sklearn-like regressor. X is SMILES (list/array of strings)."""
 
     def __init__(self, seed=0, hidden=200, depth=3, dropout=0.1, lr=1e-3, batch_size=64,
                  max_epochs=60, patience=10, val_frac=0.1, n_threads=1, device=None):
         self.seed, self.hidden, self.depth, self.dropout = seed, hidden, depth, dropout
         self.lr, self.batch_size, self.max_epochs, self.patience = lr, batch_size, max_epochs, patience
         self.val_frac, self.n_threads = val_frac, n_threads
-        self.device = device  # None -> NCMOL_DEVICE или cpu; см. ncmol.device
+        self.device = device  # None -> NCMOL_DEVICE or cpu; see ncmol.device
         self.n_epochs_ = None
 
     def _dev(self):
@@ -151,7 +151,7 @@ class DMPNNRegressor:
             for i in range(0, len(order), self.batch_size):
                 idx = order[i:i + self.batch_size]
                 if len(idx) < 2:
-                    continue  # BatchNorm нет, но шаг по одному примеру шумен
+                    continue  # no BatchNorm, but a step on a single example is noisy
                 loss = nn.functional.mse_loss(self.net_(*_to(collate([graphs[j] for j in idx]), dev)),
                                               torch.from_numpy(yt[idx]).to(dev))
                 opt.zero_grad(); loss.backward(); opt.step()
