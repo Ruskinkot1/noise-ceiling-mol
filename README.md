@@ -45,9 +45,9 @@ python scripts/05_fraction_of_ceiling.py
 ```
 A task = (target, measurement type); IC50 and Ki are treated separately.
 
-## Embeddings and D-MPNN (not yet implemented)
+## Embeddings and D-MPNN 
 - Embeddings: the interface is ready — `data/embeddings/<name>.npz` (`mol_ids`, `X`), models `emb-<name>_gbm` / `_mlp` / `_ridge`. There is no inference script; the choice of 3–4 open models has **not been made**.
-- D-MPNN: via chemprop, **not wired in**.
+- D-MPNN: via chemprop.
 
 ## Plan and stopping criteria
 Wk 1 novelty (done, partly taken) · 2–3 data (stop: <15 tasks → narrow the scope) · 4–5 ceiling (stop: ceiling ≈ ideal → reformulate) · 6–7 models · 8–9 analysis · 10 recommendations (MDE, protocol) · 11–12 paper, code, leaderboard.
