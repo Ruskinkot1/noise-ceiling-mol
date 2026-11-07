@@ -1,0 +1,97 @@
+min_docs: 2
+min_replicated_mols: 100
+max_abs_pair_diff: 3.0
+standard_types:
+- IC50
+- Ki
+chembl_candidates:
+- id: CHEMBL2041
+  note: 'Proto-oncogene tyrosine-protein kinase receptor Ret (selected by activity count: 24485 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL5251
+  note: 'Tyrosine-protein kinase BTK (selected by activity count: 16702 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL1163125
+  note: 'Bromodomain-containing protein 4 (selected by activity count: 15237 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2835
+  note: 'Tyrosine-protein kinase JAK1 (selected by activity count: 14341 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL1741186
+  note: 'Nuclear receptor ROR-gamma (selected by activity count: 12803 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL4805
+  note: 'P2X purinoceptor 7 (selected by activity count: 10231 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2148
+  note: 'Tyrosine-protein kinase JAK3 (selected by activity count: 10155 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL261
+  note: 'Carbonic anhydrase 1 (selected by activity count: 10048 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL4296
+  note: 'Sodium channel protein type 9 subunit alpha (selected by activity count: 9739 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL3778
+  note: 'Interleukin-1 receptor-associated kinase 4 (selected by activity count: 9444 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2007625
+  note: 'Isocitrate dehydrogenase [NADP] cytoplasmic (selected by activity count: 9091 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL3130
+  note: 'Phosphatidylinositol 4,5-bisphosphate 3-kinase catalytic subunit delta isoform (selected by activity count: 8985 IC50/Ki binding activities
+    with pChEMBL, scripts/13_discover_targets.py; pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL1865
+  note: 'Protein deacetylase HDAC6 (selected by activity count: 8652 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL4792
+  note: 'Orexin receptor type 2 (selected by activity count: 8413 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2815
+  note: 'High affinity nerve growth factor receptor (selected by activity count: 8391 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL5113
+  note: 'Orexin/Hypocretin receptor type 1 (selected by activity count: 8019 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL220
+  note: 'Acetylcholinesterase (selected by activity count: 7852 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2998
+  note: 'P2X purinoceptor 3 (selected by activity count: 7511 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2147
+  note: 'Serine/threonine-protein kinase pim-1 (selected by activity count: 7413 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL5936
+  note: 'Toll-like receptor 7 (selected by activity count: 7402 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL3594
+  note: 'Carbonic anhydrase 9 (selected by activity count: 7189 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL3717
+  note: 'Hepatocyte growth factor receptor (selected by activity count: 7088 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL3553
+  note: 'Non-receptor tyrosine-protein kinase TYK2 (selected by activity count: 6960 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL5805
+  note: 'Toll-like receptor 8 (selected by activity count: 6929 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2000
+  note: 'Plasma kallikrein (selected by activity count: 6871 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL4040
+  note: 'Mitogen-activated protein kinase 1 (selected by activity count: 6852 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL4409
+  note: 'cAMP and cAMP-inhibited cGMP 3'',5''-cyclic phosphodiesterase 10A (selected by activity count: 6850 IC50/Ki binding activities with pChEMBL,
+    scripts/13_discover_targets.py; pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL5804
+  note: 'Toll-like receptor 9 (selected by activity count: 6825 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py; pref_name
+    from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2599
+  note: 'Tyrosine-protein kinase SYK (selected by activity count: 6674 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
+- id: CHEMBL2039
+  note: 'Amine oxidase [flavin-containing] B (selected by activity count: 6420 IC50/Ki binding activities with pChEMBL, scripts/13_discover_targets.py;
+    pref_name from the ChEMBL API, SINGLE PROTEIN, Homo sapiens)'
