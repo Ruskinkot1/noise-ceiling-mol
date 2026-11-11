@@ -1,0 +1,39 @@
+\section{Are replicates independent?}\label{sec:provenance}
+
+The floor of Section~\ref{sec:ceiling} treats two documents reporting the same molecule as two independent measurements. That assumption fails if the two documents come from the same group, or if one simply reprints the other. We test both with document metadata, and we try to test a third mechanism, assay conditions, which we can only partly resolve.
+
+\paragraph{Metadata.} We retrieved author list, journal, document type, year and identifiers for all 5{,}934 source documents of the 17 tasks from the ChEMBL API (\texttt{scripts/11\_provenance\_audit.py}). Author strings are normalised to surname plus first initial, lower-cased, so that \emph{Smith JA} and \emph{Smith J} match. 614 documents (10.3\%) carry no author field, mostly patents and recent deposited data sets; a pair in which either document lacks authors is counted as unknown and excluded from the author subsets rather than counted as not sharing. Of the 4{,}992 between-document molecule pairs (2{,}602 distinct document pairs), 1{,}084 share at least one author, 1{,}920 share none, and 1{,}988 (39.8\%) are unknown.
+
+\paragraph{Shared authors.} We recompute the pairwise estimator $\hat\sigma=\sqrt{\overline{\Delta^2/2}}$ on subsets of pairs, bootstrapping over document pairs (Table~\ref{tab:provenance}).
+
+\begin{table}[t]
+\centering
+\caption{Pairwise noise estimate $\hat\sigma$ (pChEMBL units) over subsets of the between-document pairs of all 17 tasks, with 95\% bootstrap intervals over document-pair clusters. Pairs in which either document has no author list are excluded from the author subsets.}
+\label{tab:provenance}
+\begin{tabular}{lrrl}
+\toprule
+Subset of pairs & Molecule pairs & Document pairs & $\hat\sigma$ [95\% CI] \\
+\midrule
+All & 4{,}992 & 2{,}602 & 0.622 [0.576, 0.669] \\
+No shared author & 1{,}920 & 1{,}609 & 0.655 [0.631, 0.681] \\
+Shared $\ge1$ author & 1{,}084 & 586 & 0.502 [0.459, 0.555] \\
+Shared $\ge2$ authors & 901 & 466 & 0.491 [0.436, 0.549] \\
+Shared last author & 612 & 316 & 0.476 [0.422, 0.535] \\
+No shared last author & 2{,}392 & 1{,}879 & 0.634 [0.610, 0.657] \\
+Identical-value pairs removed & 4{,}742 & 2{,}579 & 0.637 [0.589, 0.691] \\
+No shared author, identical removed & 1{,}920 & 1{,}609 & 0.655 [0.630, 0.678] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Documents that share an author agree substantially better than documents that do not: $\hat\sigma=0.50$ against $0.66$, and the two intervals do not overlap. Sharing the last author, the usual marker of one laboratory, gives the lowest value of all, $0.476$. The direction is consistent across tasks rather than driven by a few: of the 16 tasks with pairs in both subsets, 13 have a larger $\hat\sigma$ among pairs with no shared author (median difference 0.15 pChEMBL units; sign test $p=0.021$, Wilcoxon signed-rank $p=0.0013$). CHEMBL237 $\mathrm{IC}_{50}$ has no shared-author pair at all and is omitted from the test.
+
+This is what one would expect if same-group replicates are not independent: the same protocol, the same reference compounds, sometimes the same raw plate. It also means that the pooled floor is pulled \emph{down} by these pairs, so it understates the disagreement a model faces between genuinely independent sources. Restricting to pairs with no shared author raises $\hat\sigma$ from 0.622 to 0.655, about 5\%, and the corresponding $\mathrm{RMSE}_{\mathrm{floor}}$ by the same factor. The effect goes in the direction that makes models look \emph{further} from the ceiling, not closer, so it does not explain the $f>1$ cases of Section~\ref{sec:results}.
+
+\paragraph{Re-publication.} A document pair is flagged as a probable re-publication when it shares at least 5 molecules and more than half of the shared values are numerically identical. 28 of the 2{,}780 task-level document pairs are flagged (a document pair is counted once per task in which both documents appear), covering 250 molecule pairs (5.0\% of all pairs); 20 of the 28 are in the same journal, and several involve recent deposited data sets re-reporting an earlier paper. Dropping them moves the pooled estimate from 0.622 to 0.637, and adds nothing beyond the shared-author correction: the no-shared-author subset is unchanged at 0.655 after removing them, because the flagged pairs are already outside it. Identical values are thus a visible but minor contributor, consistent with the robustness check in Section~\ref{sec:ceiling}.
+
+\paragraph{Assay conditions.} The third mechanism, and the one we cannot settle, is that $\mathrm{IC}_{50}$ depends on substrate concentration through the Cheng--Prusoff relationship $\mathrm{IC}_{50}=K_i(1+[S]/K_m)$, so two documents using different ATP concentrations will disagree systematically even with perfect measurements. Five of the nine $\mathrm{IC}_{50}$ tasks are kinases, where this is a known concern. We parsed ATP concentrations out of the free-text assay descriptions with a set of patterns covering the usual phrasings (\texttt{scripts/12\_assay\_conditions.py}), and this is where the attempt stalls: a concentration is stated in a parseable form in only a small minority of assays --- 95 of 1{,}541 for EGFR, 83 of 897 for VEGFR2, 81 of 438 for JAK2, 25 of 469 for PI3K$\alpha$ and 23 of 380 for B-Raf. Most descriptions either omit the concentration or give it as \emph{at $K_m$}, which is a different and unrecoverable statement without the $K_m$ of that particular construct.
+
+Where both documents of a pair state a concentration, the test is underpowered or inconclusive. JAK2 has 535 such pairs, but 517 of them use the \emph{same} concentration, and $\hat\sigma$ over them is 0.785, no lower than the task as a whole; fitting $K_m$ to the residual mismatch drives the estimate to the upper boundary of the search grid, which means the data do not identify it. VEGFR2 has only 64 usable pairs, over which $\hat\sigma$ moves from 0.401 to 0.378 after a Cheng--Prusoff correction, a change well inside the bootstrap interval. We deliberately do not substitute literature $K_m$ values to correct the remaining pairs: the correction would then be an assumption, not a measurement, and it would be applied to the 5\% of pairs whose conditions happen to be machine-readable.
+
+We therefore report this as unresolved. The honest statement is that ATP-concentration mismatch is a plausible component of the $\mathrm{IC}_{50}$ floors, that ChEMBL's free-text assay descriptions do not record it well enough to subtract it at scale, and that separating it would need either structured assay-condition fields or manual curation of a sample. A practical consequence for benchmark builders is in Section~\ref{sec:recs}: $K_i$ tasks, where the Cheng--Prusoff ambiguity does not arise, give a cleaner floor than $\mathrm{IC}_{50}$ tasks, and the median $\hat s$ we measure is indeed lower for $K_i$ (0.47) than for $\mathrm{IC}_{50}$ (0.66).
