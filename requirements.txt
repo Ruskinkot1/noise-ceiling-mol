@@ -7,4 +7,10 @@ pyyaml
 pytest
 tabulate
 torch
-transformers
+# Hard pin. The pinned MoLFormer-XL revision (scripts/06_embed_foundation.py) is written against the
+# transformers 4.x API and fails to import on 5.x: it needs transformers.onnx and
+# transformers.pytorch_utils.find_pruneable_heads_and_indices, both removed in 5.0. transformers 4.51.3
+# in turn requires huggingface_hub<1. Relaxing either pin means re-running the embeddings for every task,
+# because the frozen-embedding results are only comparable across tasks within one library version.
+transformers==4.51.3
+huggingface_hub<1

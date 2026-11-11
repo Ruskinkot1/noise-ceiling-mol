@@ -3,7 +3,7 @@ name = "ncmol"
 version = "0.1.0"
 description = "Noise ceiling for molecular property benchmarks"
 requires-python = ">=3.10"
-dependencies = ["numpy", "pandas", "scipy", "scikit-learn", "rdkit", "pyyaml", "torch", "transformers", "tabulate"]
+dependencies = ["numpy", "pandas", "scipy", "scikit-learn", "rdkit", "pyyaml", "torch", "transformers==4.51.3", "huggingface_hub<1", "tabulate"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

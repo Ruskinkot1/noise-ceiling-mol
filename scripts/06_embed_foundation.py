@@ -70,6 +70,10 @@ def embed_smiles(smiles, tok, model, batch_size=32, max_length=256, device=None)
 def load_model(spec):
     from huggingface_hub import snapshot_download
     from transformers import AutoModel, AutoTokenizer
+    # The pinned MoLFormer revision is written against the transformers 4.x API: it imports
+    # transformers.onnx (dropped in 5.x) and transformers.pytorch_utils.find_pruneable_heads_and_indices
+    # (also dropped), so it fails to import on transformers>=5. requirements.txt pins 4.51.3 for this
+    # reason; do not relax that pin without re-running the embeddings for every task.
     path = snapshot_download(spec["repo"], revision=spec["rev"], allow_patterns=spec.get("patterns"))
     remote = spec.get("remote", False)
     tok = AutoTokenizer.from_pretrained(path, trust_remote_code=remote)
