@@ -1,4 +1,4 @@
-"""Сплиты: случайный, скэффолдный (Murcko), временной. Возвращают (train_idx, test_idx)."""
+"""Сплиты: случайный, скэффолдный (Murcko), временной, по документам. Возвращают (train_idx, test_idx)."""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -40,4 +40,28 @@ def temporal_split(df: pd.DataFrame, seed: int = 0, test_frac: float = 0.2):
     return np.sort(order[:-k]), np.sort(order[-k:])
 
 
-SPLITS = {"random": random_split, "scaffold": scaffold_split, "temporal": temporal_split}
+def document_split(df: pd.DataFrame, seed: int, test_frac: float = 0.2):
+    """Документ целиком в train или test: тестовая молекула не имеет в обучении ни одной молекулы
+    из своего документа. Снимает поддержку документа, из-за которой модели пробивают потолок шума
+    на случайном и скэффолдном сплитах (см. раздел про поддержку документа в статье).
+    Требует столбец first_doc (scripts/02_standardize.py). Крупные документы уходят в train,
+    как и крупные скэффолды в scaffold_split, иначе один документ съедает весь тест."""
+    if "first_doc" not in df.columns:
+        raise KeyError("document_split требует столбец first_doc; пересоберите *.molecules.csv "
+                       "через scripts/02_standardize.py или scripts/backfill_first_doc.py")
+    groups = defaultdict(list)
+    for i, doc in enumerate(df["first_doc"]):
+        groups[doc].append(i)
+    rng = np.random.default_rng(seed)
+    keys = list(groups)
+    rng.shuffle(keys)
+    n_test = int(round(len(df) * test_frac))
+    train, test = [], []
+    for k in keys:
+        g = groups[k]
+        (test if len(test) + len(g) <= n_test else train).extend(g)
+    return np.sort(train), np.sort(test)
+
+
+SPLITS = {"random": random_split, "scaffold": scaffold_split, "temporal": temporal_split,
+          "document": document_split}

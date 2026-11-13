@@ -3,7 +3,7 @@
 
 Выход для каждой задачи (мишень x тип измерения):
   data/processed/<target>_<type>.measurements.csv : mol_id, smiles, doc_id, assay_id, year, y   (по измерению)
-  data/processed/<target>_<type>.molecules.csv    : mol_id, smiles, y (среднее по документам), n_docs, first_year
+  data/processed/<target>_<type>.molecules.csv    : mol_id, smiles, y (среднее по документам), n_docs, first_year, first_doc
   data/processed/tasks.csv                        : сводка и флаг passes (>= min_replicated_mols)
 """
 import argparse
@@ -43,8 +43,11 @@ def main():
             # одно значение на (молекула, документ): среднее по повторам внутри документа
             d = m.groupby(["mol_id", "doc_id"], as_index=False).agg(
                 smiles=("smiles", "first"), year=("year", "first"), y=("y", "mean"))
+            # first_doc: документ с самым ранним годом (ties -> первый по сортировке), нужен для сплита по документам
+            d = d.sort_values(["mol_id", "year", "doc_id"], kind="stable")
             mols = d.groupby("mol_id").agg(smiles=("smiles", "first"), y=("y", "mean"),
-                                           n_docs=("doc_id", "nunique"), first_year=("year", "min")).reset_index()
+                                           n_docs=("doc_id", "nunique"), first_year=("year", "min"),
+                                           first_doc=("doc_id", "first")).reset_index()
             task = f"{f.stem}_{stype}"
             m.to_csv(out / f"{task}.measurements.csv", index=False)
             mols.to_csv(out / f"{task}.molecules.csv", index=False)
