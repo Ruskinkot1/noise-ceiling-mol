@@ -1,0 +1,50 @@
+\section{Why models pass the ceiling: document support}\label{sec:support}
+
+Section~\ref{sec:results} reports task--split combinations on which models score below the estimated floor ($f>1$). On the 17 tasks of the preprint these looked like isolated anomalies. With 41 tasks they are not isolated: ECFP with gradient boosting exceeds the floor on 16 of 41 tasks under a random split. This section identifies the cause, and the cause turns out to say more about the splits than about the floor.
+
+\paragraph{$f$ scales with the noise it is meant to divide out.} The fraction of ceiling was introduced to put tasks with different noise levels on one scale. It does not. Across the 41 tasks, mean $f$ of ECFP+GBM on random splits rises with the estimated noise $\hat s$ (Spearman $\rho=+0.74$, $p=3\times10^{-8}$). This is not an artefact of the vanishing headroom in the denominator of $f$: the ratio $\mathrm{RMSE}_{\mathrm{floor}}/\mathrm{RMSE}$, which has no such denominator, rises with $\hat s$ just as strongly ($\rho=+0.80$, $p=4\times10^{-10}$). On noisy tasks models really do get closer to, and past, the floor estimated for them.
+
+\paragraph{The cause is how much of a test molecule's document is in training.} For every test molecule measured in a single document --- 609{,}539 molecule--split--seed cases over the 41 tasks --- we count how many molecules from that same document are in the training set (\texttt{scripts/}\allowbreak\texttt{14\_document\_support.py}). Test error falls monotonically with that count, and crosses the floor (Table~\ref{tab:support}).
+
+\begin{table}[t]
+\centering\small
+\caption{Test RMSE (pChEMBL) of ECFP+GBM against the number of training molecules from the test molecule's own document, over 41 tasks, 5 seeds, test molecules measured in one document. The median $\hat s$ over these tasks is 0.54. Counts are molecule--split--seed cases.}
+\label{tab:support}
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{2}{c}{Random} & \multicolumn{2}{c}{Scaffold} & \multicolumn{2}{c}{Temporal} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Same-document training mols & RMSE & $n$ & RMSE & $n$ & RMSE & $n$ \\
+\midrule
+0        & 1.072 & 2{,}762  & 1.069 & 9{,}148  & 1.041 & 142{,}820 \\
+1--4     & 0.828 & 11{,}654 & 0.890 & 20{,}220 & 1.036 & 13{,}685 \\
+5--19    & 0.663 & 59{,}332 & 0.758 & 58{,}733 & 0.814 & 14{,}235 \\
+20--99   & 0.589 & 56{,}968 & 0.657 & 48{,}935 & 0.637 & 15{,}665 \\
+100+     & 0.506 & 70{,}722 & 0.564 & 64{,}490 & 0.505 & 20{,}170 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A model given no molecule from the test molecule's document errs by about 1.05 pChEMBL units, well above the floor; given a hundred or more, it errs by about 0.51, below it. Document support, not chemistry, decides whether a model appears to beat the noise ceiling.
+
+\paragraph{The three splits do not differ in difficulty.} Read the first row of Table~\ref{tab:support} across: with no same-document support the three splits give 1.072, 1.069 and 1.041. They are the same task. What differs is how many test molecules are left in that state: 2{,}762 under a random split against 142{,}820 under a temporal one. The familiar ordering --- random easy, scaffold harder, temporal hardest --- is, on these data, mostly a statement about document support rather than about generalising to new chemotypes or to the future. This reframes the gap reported in Section~\ref{sec:results} and, we expect, similar gaps elsewhere in the potency-prediction literature.
+
+\paragraph{It is support, not document size.} Support and document size are nearly collinear under a random split: a large document contributes many training molecules by construction. Scaffold splits break the collinearity, because molecules of one document are separated by scaffold. Within each document-size stratum the gradient in the share of the document seen in training survives (scaffold split, RMSE):
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Document size & $<$20\% & 20--50\% & 50--80\% & $>$80\% \\
+\midrule
+1--49 molecules   & 1.003 & 0.810 & 0.749 & 0.706 \\
+50--199 molecules & 0.743 & 0.647 & 0.626 & 0.602 \\
+200+ molecules    & 0.999 & 0.502 & 0.569 & 0.543 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Paired test.} Finally, the same molecules, compared with and without support. We take the 2{,}574 test molecules that belong to documents of at least 100 molecules, keep at least 100 same-document training molecules under the random split, and none under the temporal split. Their RMSE is 0.469 with support and 0.912 without (Wilcoxon signed-rank on squared errors, $p=1.4\times10^{-209}$). Intrinsic difficulty is held fixed by construction; only support changes. The comparison does also move the training data earlier in time, so part of the difference may be genuine temporal shift; the within-split gradients above carry no such confound.
+
+\paragraph{Mechanisms we tested and rejected.} Three plausible explanations do not survive contact with the data, and we record them so that others need not repeat them. (i) \emph{Concentration of a task in few documents}: rank correlation of mean $f$ with the number of documents per task is $-0.04$, and with the share of measurements from the largest document $+0.06$. (ii) \emph{Between-laboratory offsets}: using the author metadata of Section~\ref{sec:provenance}, the per-task gap between $\hat\sigma$ among document pairs with no shared author and pairs that share one does not predict $f$ ($\rho=+0.02$, $n=23$ tasks with at least 20 shared-author pairs). (iii) \emph{Potency-dependent heteroscedasticity}: within replicated molecules, the absolute between-document deviation does not grow with potency (median per-task $\rho=-0.01$; 20 of 41 tasks positive, sign test $p=1.0$). The effect is specific to how much of a test molecule's own document the model has already seen.
+
+\paragraph{What this means for the floor.} The floor itself is not refuted. It estimates the disagreement between independent documents, and Section~\ref{sec:provenance} shows that estimate is if anything conservative, because replicates sharing authors agree better than independent ones. What the comparison shows is that a model evaluated on a random or scaffold split is not solving the task the floor describes: it is partly recovering the offset of a document it has already seen, which an independent measurement of the same molecule would not reproduce. The noise ceiling is therefore most useful not as a normalising constant but as a detector: scores that approach or pass it are evidence of document support, not of models nearing the limit of the data. Section~\ref{sec:docsplit} tests the remedy.
