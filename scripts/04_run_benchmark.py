@@ -36,9 +36,11 @@ def main():
     for t in names:
         df = pd.read_csv(Path(a.processed) / f"{t}.molecules.csv")
         feats = {m: featurize(m, df["smiles"], df["mol_id"], a.emb_dir) for m in a.models}
+        # component_split строит двудольный граф молекул и документов, поэтому ему нужны измерения
+        meas = pd.read_csv(Path(a.processed) / f"{t}.measurements.csv") if "component" in a.splits else None
         for sp in a.splits:
             for seed in range(a.seeds):
-                tr, te = SPLITS[sp](df, seed)
+                tr, te = SPLITS[sp](df, seed, meas=meas) if sp == "component" else SPLITS[sp](df, seed)
                 for m in a.models:
                     X = feats[m]
                     model, cfg = tune_and_fit(m, X[tr], df["y"].iloc[tr].to_numpy(), seed, a.n_trials)

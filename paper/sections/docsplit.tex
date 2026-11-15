@@ -1,3 +1,33 @@
 \section{A document-grouped split}\label{sec:docsplit}
 
-\textsc{Results of this section are being computed and will be filled in before submission.}
+If document support is what carries models past the noise ceiling, removing it should put them back below it. We add a fourth split in which a source document is assigned whole to training or to test, so that a test molecule's label comes from a document the model has not seen (\texttt{ncmol.splits.}\allowbreak\texttt{document\_split}). It needs only the document identifier that ChEMBL already supplies. As with scaffolds, a document larger than the test budget goes to training, so that one large document cannot become the test set.
+
+\paragraph{Scores fall below the ceiling, and the metric stops tracking the noise.} Table~\ref{tab:docsplit} gives mean $f$ over the 41 tasks, with the other three splits for comparison.
+
+\begin{table}[t]
+\centering\small
+\caption{Mean fraction of ceiling over 41 tasks, five seeds. The document split removes most of the support that a random split leaves (last row: share of single-document test molecules with no training molecule from their own document).}
+\label{tab:docsplit}
+\begin{tabular}{lrrrr}
+\toprule
+Model & Random & Scaffold & Temporal & Document \\
+\midrule
+ECFP+RF                       & 1.04 & 0.87 & 0.42 & 0.38 \\
+ECFP+GBM                      & 1.02 & 0.85 & 0.37 & 0.34 \\
+MoLFormer-XL-10\% (frozen)+GBM & 0.78 & 0.65 & 0.30 & 0.30 \\
+ChemBERTa-77M (frozen)+GBM    & 0.82 & 0.66 & 0.29 & 0.28 \\
+ECFP+MLP                      & 0.51 & 0.08 & $-1.01$ & $-0.93$ \\
+\midrule
+Tasks with $f>1$ (ECFP+GBM)   & 16 & 5 & 2 & 0 \\
+Test molecules with no support & 1.2\% & 4.1\% & 51.8\% & 59.2\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+No task exceeds the ceiling under the document split, against 16 of 41 under a random split. More tellingly, the confounding reported in Section~\ref{sec:support} disappears: the rank correlation between mean $f$ and the estimated noise $\hat s$, which is $+0.74$ ($p=3\times10^{-8}$) on random splits, becomes $+0.05$ ($p=0.75$). The fraction of ceiling does what it was designed to do --- place tasks of different noisiness on one scale --- only once document support is removed. On random and scaffold splits it does not, and the gap between what it is meant to measure and what it measures is the document.
+
+\paragraph{The model ordering survives.} The conclusion of Section~\ref{sec:results} is not an artefact of the splits that produced it. Under the document split both frozen embedding models remain below the ECFP+GBM baseline over the 41 tasks (ChemBERTa: mean difference $-0.052$, 9 of 41 tasks better, Wilcoxon $p=2\times10^{-4}$, Holm-adjusted $4\times10^{-4}$; MoLFormer: $-0.041$, 10 of 41, $p=0.0023$), and ECFP with a random forest remains slightly above it ($+0.041$, 32 of 41, $p<10^{-4}$). What changes is not the ranking but the distance to the ceiling: the best model now reaches about 38\% of it rather than appearing to pass it.
+
+\paragraph{How much support remains.} The split groups molecules by their earliest document. A molecule measured in several documents is therefore placed by one of them, and can still share a later document with a training molecule, so 59.2\% of single-document test molecules are left with no support rather than 100\%. This is a large improvement on random (1.2\%) and scaffold (4.1\%) splits and is comparable to the temporal split (51.8\%), but it is not complete, and a reader should not take ``document split'' to mean that support has been eliminated.
+
+A stricter construction removes it entirely: molecules and documents form a bipartite graph, and a whole connected component is assigned to one side, so no document is shared at all (\texttt{ncmol.splits.}\allowbreak\texttt{component\_split}). The cost is coarser groups --- over our tasks the largest component holds a median of 20\% of molecules, and up to 75\% for one task --- which limits how small a test set can be. We report it as a robustness check rather than as the main protocol.

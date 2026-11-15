@@ -28,12 +28,12 @@ BINS = [-1, 0, 4, 19, 99, np.inf]
 LABELS = ["0", "1-4", "5-19", "20-99", "100+"]
 
 
-def load_preds(src: str) -> pd.DataFrame:
-    """src — либо один файл predictions.csv.gz, либо каталог с clean_*_cheap.pred.csv."""
+def load_preds(src: str, pattern: str = "clean_*_cheap.pred.csv") -> pd.DataFrame:
+    """src — либо один файл predictions.csv.gz, либо каталог с файлами по маске pattern."""
     if os.path.isdir(src):
-        files = sorted(glob.glob(os.path.join(src, "clean_*_cheap.pred.csv")))
+        files = sorted(glob.glob(os.path.join(src, pattern)))
         if not files:
-            raise SystemExit(f"нет clean_*_cheap.pred.csv в {src}")
+            raise SystemExit(f"нет {pattern} в {src}")
         return pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
     return pd.read_csv(src)
 
@@ -46,14 +46,17 @@ def support_table(preds: pd.DataFrame, datadir: str, model: str, splits) -> pd.D
         if not f.exists():
             continue
         m = pd.read_csv(f)
-        first_doc = m.groupby("mol_id")["doc_id"].first()
-        doc_size = first_doc.value_counts()
+        # пары (молекула, документ): обучающая молекула поддерживает документ, если она в нём измерена,
+        # даже если её относит к другому документу разбиение (сплит группирует по самому раннему)
+        md = m[["mol_id", "doc_id"]].drop_duplicates()
+        only_doc = m.groupby("mol_id")["doc_id"].first()   # для n_docs==1 это и есть её документ
+        doc_size = md.groupby("doc_id")["mol_id"].nunique()
         for sp in splits:
             p = p0[(p0["split"] == sp) & (p0["n_docs"] == 1)]
             for seed, g in p.groupby("seed"):
-                # обучающие молекулы = все, кроме тестовых этого сида
-                train_docs = first_doc[~first_doc.index.isin(set(g["mol_id"]))].value_counts()
-                doc = g["mol_id"].map(first_doc)
+                test_ids = set(g["mol_id"])
+                train_docs = md[~md.mol_id.isin(test_ids)].groupby("doc_id")["mol_id"].nunique()
+                doc = g["mol_id"].map(only_doc)
                 out.append(pd.DataFrame({
                     "task": task, "split": sp, "seed": seed, "mol_id": g["mol_id"].to_numpy(),
                     "doc_size": doc.map(doc_size).to_numpy(),
@@ -74,13 +77,15 @@ def main():
                     help="name:datadir:predictions_src, напр. full:data/full_clean:results/full_clean/predictions.csv.gz")
     ap.add_argument("--model", default="ecfp_gbm")
     ap.add_argument("--splits", nargs="+", default=["random", "scaffold", "temporal"])
+    ap.add_argument("--pred-glob", default="clean_*_cheap.pred.csv",
+                    help="маска файлов предсказаний, если --cohorts указывает на каталог")
     ap.add_argument("--out", default="results/document_support")
     a = ap.parse_args()
 
     frames = []
     for spec in a.cohorts:
         name, datadir, src = spec.split(":", 2)
-        t = support_table(load_preds(src), datadir, a.model, a.splits)
+        t = support_table(load_preds(src, a.pred_glob), datadir, a.model, a.splits)
         frames.append(t.assign(cohort=name))
         print(f"{name}: {t.task.nunique()} задач, {len(t)} тестовых молекул (n_docs=1)")
     D = pd.concat(frames, ignore_index=True)
