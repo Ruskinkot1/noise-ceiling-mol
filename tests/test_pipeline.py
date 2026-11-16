@@ -27,10 +27,14 @@ def test_mean_label_lowers_floor():
 def test_splits_disjoint_and_complete():
     rings = ["c1ccccc1", "c1ccncc1", "C1CCCCC1", "c1ccsc1", "c1ccoc1", "C1CCNCC1"]
     smi = [rings[i % 6] + "C" * (i % 5) + "O" * (i % 3) for i in range(60)]
-    df = pd.DataFrame({"smiles": smi, "first_year": np.arange(60) % 15 + 2000})
-    for f in SPLITS.values():
+    df = pd.DataFrame({"mol_id": [f"M{i:03d}" for i in range(60)], "smiles": smi,
+                       "first_year": np.arange(60) % 15 + 2000,
+                       "first_doc": [f"DOC{i % 12}" for i in range(60)]})
+    for name, f in SPLITS.items():
         tr, te = f(df, 0)
-        assert not set(tr) & set(te) and len(tr) + len(te) == len(df) and len(te) > 0
+        assert not set(tr) & set(te), name
+        assert len(tr) + len(te) == len(df), name
+        assert len(te) > 0, name
 
 
 def test_bootstrap_matches_point_estimate():
