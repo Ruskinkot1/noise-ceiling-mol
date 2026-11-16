@@ -3,7 +3,7 @@
 MDE на одном тесте (задача x сплит x сид) для пары модель vs ECFP+GBM:
 d_i = e_m,i^2 - e_b,i^2 по тест-молекулам; SE = sd(d)/sqrt(n); MDE_MSE = (z_.975 + z_.8) SE;
 MDE_RMSE = MDE_MSE / (2 RMSE_b) (дельта-метод, src/ncmol/stats.py); в долях потолка: / (RMSE_mean - RMSE_floor).
-Выход: results/full_clean/mde.csv, paper/figures/{paired_diff,floor_vs_rmse}.pdf, paper/sections/mde_numbers.tex"""
+Выход: results/<--results>/mde.csv, paper/figures/{paired_diff,floor_vs_rmse}.pdf"""
 from pathlib import Path
 
 import numpy as np
@@ -47,12 +47,8 @@ summ = mde.groupby(["model", "split"])[["mde_rmse", "mde_frac"]].median()
 print(summ.round(3).to_string())
 
 # числа для текста статьи
-rf = summ.loc["ecfp_rf"]
-with open("paper/sections/mde_numbers.tex", "w") as f:
-    f.write("% сгенерировано scripts/09_mde_figures.py\n")
-    for sp in SPL:
-        f.write(f"\\newcommand{{\\mde{sp.capitalize()}Rmse}}{{{rf.loc[sp,'mde_rmse']:.3f}}}\n")
-        f.write(f"\\newcommand{{\\mde{sp.capitalize()}Frac}}{{{rf.loc[sp,'mde_frac']:.3f}}}\n")
+# Макросы в paper/sections/mde_numbers.tex больше не пишутся: эти же числа ставит в текст
+# scripts/make_paper_tables.py прямо из results/<...>/mde.csv, а два источника расходились.
 
 plt.rcParams.update({"font.size": 8, "axes.edgecolor": MUTED, "axes.labelcolor": INK, "xtick.color": MUTED,
                      "ytick.color": MUTED, "axes.spines.top": False, "axes.spines.right": False})

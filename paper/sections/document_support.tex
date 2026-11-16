@@ -27,11 +27,14 @@ Same-document training mols & RMSE & $n$ & RMSE & $n$ & RMSE & $n$ \\
 
 A model given no molecule from the test molecule's document errs by about 1.05 pChEMBL units, well above the floor; given a hundred or more, it errs by about 0.51, below it. Document support, not chemistry, decides whether a model appears to beat the noise ceiling.
 
-\paragraph{The three splits do not differ in difficulty.} Read the first row of Table~\ref{tab:support} across: with no same-document support the three splits give 1.073, 1.078 and 1.055. They are the same task. What differs is how many test molecules are left in that state: 2{,}484 under a random split against 107{,}050 under a temporal one. The familiar ordering --- random easy, scaffold harder, temporal hardest --- is, on these data, mostly a statement about document support rather than about generalising to new chemotypes or to the future. This reframes the gap reported in Section~\ref{sec:results} and, we expect, similar gaps elsewhere in the potency-prediction literature.
+\paragraph{The three splits do not differ in difficulty.} Read the first row of Table~\ref{tab:support} across: with no same-document support the three splits give 1.073, 1.078 and 1.055. They are the same task. What differs is how many test molecules are left in that state: 2{,}484 under a random split against 107{,}050 under a temporal one. The familiar ordering --- random easy, scaffold harder, temporal hardest --- is, on these data, mostly a statement about document support rather than about generalising to new chemotypes or to the future. This reframes the gap reported in Section~\ref{sec:results}. Whether it reframes the similar gaps reported elsewhere in the potency-prediction literature we cannot say from one data set, but the mechanism is not peculiar to our tasks, and the check is cheap for anyone to run.
 
-\paragraph{It is support, not document size.} Support and document size are nearly collinear under a random split: a large document contributes many training molecules by construction. Scaffold splits break the collinearity, because molecules of one document are separated by scaffold. Within each document-size stratum the gradient in the share of the document seen in training survives (scaffold split, RMSE):
+\paragraph{It is support, not document size.} Support and document size are nearly collinear under a random split: a large document contributes many training molecules by construction. Scaffold splits break the collinearity, because molecules of one document are separated by scaffold. Within each document-size stratum the drop from a barely-seen document to a well-seen one survives, although it is not monotone across the upper cells (Table~\ref{tab:strata}).
 
-\begin{center}
+\begin{table}[ht]
+\centering\small
+\caption{Test RMSE of ECFP+GBM by document size and by the share of that document seen in training, scaffold split. Support and document size are nearly collinear under a random split; the scaffold split separates them.}
+\label{tab:strata}
 \begin{tabular}{lrrrr}
 \toprule
 Document size & $<$20\% & 20--50\% & 50--80\% & $>$80\% \\
@@ -41,9 +44,9 @@ Document size & $<$20\% & 20--50\% & 50--80\% & $>$80\% \\
 200+ molecules    & 0.999 & 0.505 & 0.567 & 0.543 \\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{table}
 
-\paragraph{Paired test.} Finally, the same molecules, compared with and without support. We take the 2{,}096 test molecules that belong to documents of at least 100 molecules, keep at least 100 same-document training molecules under the random split, and none under the temporal split. Their RMSE is 0.459 with support and 0.913 without (Wilcoxon signed-rank on squared errors, $p=8\times10^{-179}$). Intrinsic difficulty is held fixed by construction; only support changes. The comparison does also move the training data earlier in time, so part of the difference may be genuine temporal shift; the within-split gradients above carry no such confound.
+\paragraph{Paired test.} Finally, the same molecules, compared with and without support. We take the 2{,}096 test molecules that belong to documents of at least 100 molecules, that have at least 100 same-document training molecules under the random split, and that have none under the temporal split. Their RMSE is 0.459 with support and 0.913 without (Wilcoxon signed-rank on squared errors, $p=8\times10^{-179}$). Intrinsic difficulty is held fixed by construction; only support changes. The comparison does also move the training data earlier in time, so part of the difference may be genuine temporal shift; the within-split gradients above carry no such confound.
 
 \paragraph{Mechanisms we tested and rejected.} Three plausible explanations do not survive contact with the data, and we record them so that others need not repeat them. (i) \emph{Concentration of a task in few documents}: rank correlation of mean $f$ with the number of documents per task is $-0.04$, and with the share of measurements from the largest document $+0.06$. (ii) \emph{Between-laboratory offsets}: using the author metadata of Section~\ref{sec:provenance}, the per-task gap between $\hat\sigma$ among document pairs with no shared author and pairs that share one does not predict $f$ ($\rho=+0.02$, $n=23$ tasks with at least 20 shared-author pairs). (iii) \emph{Potency-dependent heteroscedasticity}: within replicated molecules, the absolute between-document deviation does not grow with potency (median per-task $\rho=-0.01$; 20 of 41 tasks positive, sign test $p=1.0$). The effect is specific to how much of a test molecule's own document the model has already seen.
 
