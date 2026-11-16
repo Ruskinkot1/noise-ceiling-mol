@@ -6,6 +6,7 @@ rdkit
 pyyaml
 pytest
 tabulate
+matplotlib   # scripts/09_mde_figures.py draws the paper figures
 torch
 # Hard pin. The pinned MoLFormer-XL revision (scripts/06_embed_foundation.py) is written against the
 # transformers 4.x API and fails to import on 5.x: it needs transformers.onnx and

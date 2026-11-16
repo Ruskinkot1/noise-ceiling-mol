@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Шаг 9. Эмпирический MDE и рисунки для статьи по results/full_clean.
+"""Шаг 9. Эмпирический MDE и рисунки для статьи (по умолчанию results/all_clean).
 MDE на одном тесте (задача x сплит x сид) для пары модель vs ECFP+GBM:
 d_i = e_m,i^2 - e_b,i^2 по тест-молекулам; SE = sd(d)/sqrt(n); MDE_MSE = (z_.975 + z_.8) SE;
 MDE_RMSE = MDE_MSE / (2 RMSE_b) (дельта-метод, src/ncmol/stats.py); в долях потолка: / (RMSE_mean - RMSE_floor).
@@ -13,11 +13,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from ncmol.stats import mde_from_se
 
-R = "results/full_clean"
+import argparse
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--results", default="results/all_clean")
+_ap.add_argument("--splits", nargs="+", default=["random", "scaffold", "temporal", "document"])
+_a = _ap.parse_args()
+R = _a.results
 BASE = "ecfp_gbm"
 MODELS = {"ecfp_rf": ("ECFP+RF", "#2a78d6", "o"), "emb-chemberta-77m-mlm_gbm": ("ChemBERTa (frozen)+GBM", "#eb6834", "s"),
           "emb-molformer-xl-10pct_gbm": ("MoLFormer (frozen)+GBM", "#1baf7a", "^")}
-SPL = ["random", "scaffold", "temporal"]
+SPL = _a.splits
 INK, MUTED, GRID = "#1f1f1e", "#6b6a64", "#e4e3dd"
 
 pred = pd.read_csv(f"{R}/predictions.csv" if Path(f"{R}/predictions.csv").exists() else f"{R}/predictions.csv.gz")
