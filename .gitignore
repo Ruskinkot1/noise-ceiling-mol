@@ -17,6 +17,8 @@ data/*
 results/**/predictions.csv
 results/**/*.pred.csv
 results/all_clean/predictions.csv.gz
+# intermediate of merge_pilot.py; scripts/15_merge_cohorts.py reads results/ext directly
+results/ext_clean/
 results/**/*.npz
 *.sqlite
 *.db
