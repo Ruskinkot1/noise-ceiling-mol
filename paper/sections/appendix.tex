@@ -9,42 +9,135 @@
 
 \begin{table}[ht]\centering\small\setlength{\tabcolsep}{4pt}\caption{The 17 tasks: ChEMBL target, number of molecules and documents after decontamination.}\label{tab:tasks}
 \begin{tabular}{lp{7cm}rr}\toprule Task & Target & molecules & documents\\\midrule
+CHEMBL1163125\_IC50 & Bromodomain-containing protein 4 & 7329 & 339\\
+CHEMBL1741186\_IC50 & Nuclear receptor ROR-gamma & 7564 & 149\\
+CHEMBL1865\_IC50 & Protein deacetylase HDAC6 & 5885 & 578\\
+CHEMBL2007625\_IC50 & Isocitrate dehydrogenase [NADP] cytoplasmic & 3581 & 78\\
+CHEMBL2039\_IC50 & Amine oxidase [flavin-containing] B & 4240 & 376\\
 CHEMBL203\_IC50 & Epidermal growth factor receptor & 9567 & 865\\
+CHEMBL2041\_IC50 & Proto-oncogene tyrosine-protein kinase receptor Ret & 3658 & 177\\
 CHEMBL204\_Ki & Prothrombin & 3246 & 299\\
 CHEMBL205\_Ki & Carbonic anhydrase 2 & 6928 & 492\\
 CHEMBL206\_IC50 & Estrogen receptor & 2700 & 227\\
+CHEMBL2148\_IC50 & Tyrosine-protein kinase JAK3 & 5526 & 334\\
 CHEMBL214\_Ki & 5-hydroxytryptamine receptor 1A & 4111 & 419\\
 CHEMBL217\_Ki & D(2) dopamine receptor & 6684 & 554\\
+CHEMBL220\_IC50 & Acetylcholinesterase & 5207 & 568\\
 CHEMBL233\_Ki & Mu-type opioid receptor & 4778 & 414\\
 CHEMBL234\_Ki & D(3) dopamine receptor & 4589 & 394\\
 CHEMBL237\_IC50 & Kappa-type opioid receptor & 1000 & 57\\
 CHEMBL237\_Ki & Kappa-type opioid receptor & 3296 & 375\\
 CHEMBL251\_Ki & Adenosine receptor A2a & 4613 & 341\\
+CHEMBL261\_Ki & Carbonic anhydrase 1 & 6414 & 449\\
 CHEMBL279\_IC50 & Vascular endothelial growth factor receptor 2 & 8911 & 734\\
+CHEMBL2815\_IC50 & High affinity nerve growth factor receptor & 4220 & 220\\
+CHEMBL2835\_IC50 & Tyrosine-protein kinase JAK1 & 6821 & 255\\
 CHEMBL2971\_IC50 & Tyrosine-protein kinase JAK2 & 8585 & 353\\
+CHEMBL2998\_IC50 & P2X purinoceptor 3 & 4642 & 39\\
+CHEMBL3130\_IC50 & Phosphatidylinositol 4,5-bisphosphate 3-kinase catalytic subunit delta isoform & 6358 & 325\\
 CHEMBL325\_IC50 & Histone deacetylase 1 & 7459 & 713\\
+CHEMBL3553\_IC50 & Non-receptor tyrosine-protein kinase TYK2 & 2933 & 184\\
+CHEMBL3778\_IC50 & Interleukin-1 receptor-associated kinase 4 & 6003 & 138\\
 CHEMBL4005\_IC50 & Phosphatidylinositol 4,5-bisphosphate 3-kinase catalytic subunit alpha isoform & 5830 & 387\\
+CHEMBL4040\_IC50 & Mitogen-activated protein kinase 1 & 4396 & 124\\
+CHEMBL4296\_IC50 & Sodium channel protein type 9 subunit alpha & 7057 & 139\\
+CHEMBL4792\_Ki & Orexin receptor type 2 & 1970 & 54\\
+CHEMBL4805\_IC50 & P2X purinoceptor 7 & 2960 & 77\\
 CHEMBL4822\_IC50 & Beta-secretase 1 & 5679 & 379\\
+CHEMBL5113\_Ki & Orexin/Hypocretin receptor type 1 & 1941 & 50\\
 CHEMBL5145\_IC50 & Serine/threonine-protein kinase B-raf & 5107 & 233\\
+CHEMBL5251\_IC50 & Tyrosine-protein kinase BTK & 8299 & 357\\
+CHEMBL5804\_IC50 & Toll-like receptor 9 & 3252 & 29\\
+CHEMBL5805\_IC50 & Toll-like receptor 8 & 3377 & 31\\
+CHEMBL5936\_IC50 & Toll-like receptor 7 & 3803 & 33\\
 \bottomrule\end{tabular}\end{table}
 
 \begin{table}[ht]\centering\scriptsize\setlength{\tabcolsep}{2.5pt}\caption{Fraction of ceiling per task (mean over seeds). RF, GBM: ECFP models; ChemB., MoLF.: frozen embeddings with GBM head.}\label{tab:pertask}
 \begin{tabular}{lcccccccccccc}\toprule Task & \multicolumn{4}{c}{Random} & \multicolumn{4}{c}{Scaffold} & \multicolumn{4}{c}{Temporal}\\ & RF & GBM & ChemB. & MoLF. & RF & GBM & ChemB. & MoLF. & RF & GBM & ChemB. & MoLF.\\\midrule
+CHEMBL1163125\_IC50 & 1.06 & 1.05 & 0.90 & 0.87 & 0.96 & 0.95 & 0.80 & 0.79 & 0.75 & 0.70 & 0.67 & 0.65\\
+CHEMBL1741186\_IC50 & 0.97 & 0.95 & 0.82 & 0.77 & 0.81 & 0.78 & 0.66 & 0.66 & 0.48 & 0.32 & 0.01 & 0.06\\
+CHEMBL1865\_IC50 & 1.21 & 1.19 & 0.86 & 0.78 & 0.99 & 0.94 & 0.65 & 0.63 & 0.18 & 0.17 & 0.13 & 0.10\\
+CHEMBL2007625\_IC50 & 0.92 & 0.93 & 0.77 & 0.75 & 0.68 & 0.66 & 0.58 & 0.54 & 0.59 & 0.51 & 0.43 & 0.51\\
+CHEMBL2039\_IC50 & 1.12 & 1.06 & 0.84 & 0.82 & 0.60 & 0.56 & 0.50 & 0.50 & 0.26 & 0.08 & 0.16 & 0.15\\
 CHEMBL203\_IC50 & 0.99 & 0.94 & 0.76 & 0.72 & 0.77 & 0.72 & 0.58 & 0.58 & 0.14 & 0.08 & 0.10 & 0.13\\
+CHEMBL2041\_IC50 & 1.09 & 1.08 & 0.88 & 0.85 & 0.97 & 0.97 & 0.76 & 0.74 & -0.08 & -0.05 & 0.08 & -0.00\\
 CHEMBL204\_Ki & 0.65 & 0.65 & 0.51 & 0.47 & 0.56 & 0.55 & 0.41 & 0.42 & 0.27 & 0.31 & 0.17 & 0.13\\
 CHEMBL205\_Ki & 1.13 & 1.04 & 0.80 & 0.75 & 0.67 & 0.61 & 0.42 & 0.47 & 0.60 & 0.48 & 0.33 & 0.36\\
 CHEMBL206\_IC50 & 0.77 & 0.75 & 0.65 & 0.65 & 0.68 & 0.65 & 0.57 & 0.58 & 0.35 & 0.29 & 0.31 & 0.25\\
+CHEMBL2148\_IC50 & 1.17 & 1.12 & 0.93 & 0.88 & 1.03 & 0.98 & 0.77 & 0.76 & 0.26 & 0.24 & 0.15 & 0.07\\
 CHEMBL214\_Ki & 0.80 & 0.80 & 0.62 & 0.58 & 0.62 & 0.63 & 0.47 & 0.45 & 0.38 & 0.39 & 0.29 & 0.24\\
 CHEMBL217\_Ki & 0.75 & 0.75 & 0.55 & 0.54 & 0.63 & 0.61 & 0.48 & 0.48 & 0.34 & 0.29 & 0.20 & 0.14\\
+CHEMBL220\_IC50 & 0.77 & 0.74 & 0.60 & 0.57 & 0.52 & 0.51 & 0.41 & 0.38 & 0.25 & 0.26 & 0.18 & 0.21\\
 CHEMBL233\_Ki & 0.82 & 0.81 & 0.66 & 0.62 & 0.70 & 0.69 & 0.55 & 0.55 & 0.55 & 0.50 & 0.38 & 0.38\\
 CHEMBL234\_Ki & 0.78 & 0.78 & 0.63 & 0.61 & 0.70 & 0.70 & 0.55 & 0.54 & 0.64 & 0.63 & 0.49 & 0.57\\
 CHEMBL237\_IC50 & 0.85 & 0.72 & 0.68 & 0.62 & 0.65 & 0.56 & 0.51 & 0.41 & 0.08 & -0.03 & 0.44 & 0.37\\
 CHEMBL237\_Ki & 0.76 & 0.74 & 0.60 & 0.58 & 0.64 & 0.67 & 0.51 & 0.49 & 0.29 & 0.30 & 0.13 & 0.16\\
 CHEMBL251\_Ki & 0.72 & 0.72 & 0.57 & 0.54 & 0.63 & 0.62 & 0.45 & 0.45 & 0.17 & 0.16 & 0.17 & 0.20\\
+CHEMBL261\_Ki & 1.29 & 1.22 & 0.88 & 0.83 & 0.73 & 0.67 & 0.40 & 0.41 & 0.43 & 0.18 & 0.18 & 0.22\\
 CHEMBL279\_IC50 & 1.17 & 1.12 & 0.87 & 0.81 & 0.92 & 0.88 & 0.64 & 0.65 & 0.54 & 0.49 & 0.29 & 0.34\\
+CHEMBL2815\_IC50 & 2.65 & 2.65 & 2.20 & 2.12 & 3.45 & 3.43 & 2.53 & 2.63 & 0.33 & 0.33 & 0.04 & 0.23\\
+CHEMBL2835\_IC50 & 1.01 & 0.97 & 0.78 & 0.75 & 0.89 & 0.86 & 0.67 & 0.65 & 0.47 & 0.46 & 0.25 & 0.25\\
 CHEMBL2971\_IC50 & 1.46 & 1.43 & 1.10 & 1.00 & 1.27 & 1.25 & 0.87 & 0.82 & 0.39 & 0.38 & 0.07 & 0.03\\
+CHEMBL2998\_IC50 & 0.92 & 0.96 & 0.74 & 0.62 & 0.70 & 0.74 & 0.57 & 0.50 & 0.33 & 0.28 & 0.26 & 0.25\\
+CHEMBL3130\_IC50 & 0.93 & 0.91 & 0.74 & 0.70 & 0.84 & 0.81 & 0.64 & 0.61 & 0.14 & 0.16 & -0.06 & -0.01\\
 CHEMBL325\_IC50 & 1.16 & 1.13 & 0.83 & 0.80 & 0.87 & 0.86 & 0.63 & 0.60 & 0.16 & 0.14 & 0.01 & 0.10\\
+CHEMBL3553\_IC50 & 0.87 & 0.87 & 0.65 & 0.60 & 0.74 & 0.68 & 0.46 & 0.48 & 0.27 & 0.20 & 0.20 & 0.23\\
+CHEMBL3778\_IC50 & 1.25 & 1.23 & 1.08 & 1.02 & 1.14 & 1.13 & 0.95 & 0.92 & 0.24 & 0.20 & 0.30 & 0.39\\
 CHEMBL4005\_IC50 & 0.77 & 0.77 & 0.59 & 0.57 & 0.65 & 0.66 & 0.52 & 0.50 & 0.31 & 0.33 & 0.20 & 0.26\\
+CHEMBL4040\_IC50 & 1.11 & 1.10 & 0.86 & 0.82 & 0.85 & 0.87 & 0.58 & 0.61 & 1.07 & 1.04 & 0.79 & 0.92\\
+CHEMBL4296\_IC50 & 0.87 & 0.87 & 0.73 & 0.68 & 0.73 & 0.74 & 0.63 & 0.61 & 0.39 & 0.40 & 0.35 & 0.33\\
+CHEMBL4792\_Ki & 1.70 & 1.67 & 1.42 & 1.38 & 1.60 & 1.60 & 1.37 & 1.38 & 1.50 & 1.43 & 1.04 & 1.07\\
+CHEMBL4805\_IC50 & 0.81 & 0.81 & 0.63 & 0.60 & 0.46 & 0.37 & 0.31 & 0.29 & 0.59 & 0.58 & 0.48 & 0.14\\
 CHEMBL4822\_IC50 & 0.83 & 0.83 & 0.68 & 0.65 & 0.68 & 0.66 & 0.57 & 0.57 & 0.58 & 0.53 & 0.45 & 0.47\\
+CHEMBL5113\_Ki & 2.10 & 2.09 & 1.59 & 1.63 & 1.48 & 1.47 & 1.14 & 1.15 & 0.83 & 0.75 & 0.68 & 0.81\\
 CHEMBL5145\_IC50 & 0.87 & 0.87 & 0.68 & 0.62 & 0.77 & 0.77 & 0.61 & 0.57 & 0.26 & 0.21 & 0.19 & 0.17\\
+CHEMBL5251\_IC50 & 0.96 & 0.93 & 0.75 & 0.69 & 0.79 & 0.76 & 0.56 & 0.59 & 0.60 & 0.53 & 0.53 & 0.45\\
+CHEMBL5804\_IC50 & 0.73 & 0.75 & 0.57 & 0.54 & 0.56 & 0.64 & 0.48 & 0.43 & 0.21 & 0.16 & 0.16 & 0.17\\
+CHEMBL5805\_IC50 & 1.04 & 1.07 & 0.82 & 0.75 & 0.85 & 0.88 & 0.68 & 0.61 & 0.38 & 0.21 & 0.20 & 0.27\\
+CHEMBL5936\_IC50 & 0.93 & 0.94 & 0.84 & 0.77 & 0.89 & 0.89 & 0.73 & 0.71 & 0.60 & 0.71 & 0.62 & 0.66\\
+\bottomrule\end{tabular}\end{table}
+
+\begin{table}[ht]\centering\small\caption{Fraction of ceiling per task under the document-grouped split (mean over seeds).}\label{tab:pertask_doc}
+\begin{tabular}{lcccc}\toprule Task & RF & GBM & ChemB. & MoLF.\\\midrule
+CHEMBL1163125\_IC50 & 0.33 & 0.28 & 0.19 & 0.25\\
+CHEMBL1741186\_IC50 & 0.26 & 0.20 & 0.25 & 0.29\\
+CHEMBL1865\_IC50 & -0.23 & -0.22 & -0.08 & 0.07\\
+CHEMBL2007625\_IC50 & 0.30 & 0.20 & 0.23 & 0.19\\
+CHEMBL2039\_IC50 & 0.46 & 0.40 & 0.34 & 0.40\\
+CHEMBL203\_IC50 & 0.36 & 0.26 & 0.27 & 0.28\\
+CHEMBL2041\_IC50 & 0.48 & 0.53 & 0.39 & 0.25\\
+CHEMBL204\_Ki & 0.36 & 0.34 & 0.29 & 0.30\\
+CHEMBL205\_Ki & 0.34 & 0.25 & 0.17 & 0.24\\
+CHEMBL206\_IC50 & 0.23 & 0.13 & 0.30 & 0.25\\
+CHEMBL2148\_IC50 & 0.33 & 0.35 & 0.20 & 0.16\\
+CHEMBL214\_Ki & 0.39 & 0.37 & 0.28 & 0.28\\
+CHEMBL217\_Ki & 0.26 & 0.27 & 0.16 & 0.17\\
+CHEMBL220\_IC50 & 0.30 & 0.25 & 0.22 & 0.22\\
+CHEMBL233\_Ki & 0.38 & 0.37 & 0.25 & 0.26\\
+CHEMBL234\_Ki & 0.52 & 0.50 & 0.40 & 0.42\\
+CHEMBL237\_IC50 & 0.58 & 0.48 & 0.43 & 0.35\\
+CHEMBL237\_Ki & 0.51 & 0.46 & 0.39 & 0.36\\
+CHEMBL251\_Ki & 0.40 & 0.37 & 0.31 & 0.32\\
+CHEMBL261\_Ki & 0.35 & 0.17 & 0.16 & 0.19\\
+CHEMBL279\_IC50 & 0.40 & 0.37 & 0.29 & 0.29\\
+CHEMBL2815\_IC50 & 0.42 & 0.49 & 0.63 & 0.74\\
+CHEMBL2835\_IC50 & 0.27 & 0.24 & 0.23 & 0.23\\
+CHEMBL2971\_IC50 & -0.14 & -0.24 & -0.21 & -0.23\\
+CHEMBL2998\_IC50 & 0.48 & 0.42 & 0.34 & 0.38\\
+CHEMBL3130\_IC50 & 0.36 & 0.32 & 0.29 & 0.31\\
+CHEMBL325\_IC50 & 0.47 & 0.51 & 0.32 & 0.34\\
+CHEMBL3553\_IC50 & 0.08 & 0.03 & 0.00 & 0.06\\
+CHEMBL3778\_IC50 & 0.61 & 0.63 & 0.55 & 0.60\\
+CHEMBL4005\_IC50 & 0.34 & 0.32 & 0.26 & 0.24\\
+CHEMBL4040\_IC50 & 0.49 & 0.30 & 0.21 & 0.33\\
+CHEMBL4296\_IC50 & 0.40 & 0.41 & 0.27 & 0.32\\
+CHEMBL4792\_Ki & 0.77 & 0.75 & 0.62 & 0.64\\
+CHEMBL4805\_IC50 & 0.26 & 0.22 & 0.18 & 0.19\\
+CHEMBL4822\_IC50 & 0.52 & 0.52 & 0.43 & 0.43\\
+CHEMBL5113\_Ki & 0.84 & 0.79 & 0.44 & 0.47\\
+CHEMBL5145\_IC50 & 0.13 & 0.06 & 0.10 & 0.11\\
+CHEMBL5251\_IC50 & 0.36 & 0.30 & 0.28 & 0.27\\
+CHEMBL5804\_IC50 & 0.39 & 0.40 & 0.33 & 0.23\\
+CHEMBL5805\_IC50 & 0.47 & 0.44 & 0.44 & 0.44\\
+CHEMBL5936\_IC50 & 0.62 & 0.58 & 0.52 & 0.49\\
 \bottomrule\end{tabular}\end{table}
