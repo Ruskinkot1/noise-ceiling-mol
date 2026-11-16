@@ -12,8 +12,12 @@ data/*
 !data/full_raw/
 !data/pilot_clean/
 !data/pilot_raw/
-# результаты храним; несжатые predictions.csv — нет (в git лежит predictions.csv.gz)
+# Results: summary tables are tracked, per-task prediction dumps are not (they are large and
+# regenerable; the consolidated predictions of the first 17 tasks are kept as predictions.csv.gz).
 results/**/predictions.csv
+results/**/*.pred.csv
+results/all_clean/predictions.csv.gz
+results/**/*.npz
 *.sqlite
 *.db
 *.log
