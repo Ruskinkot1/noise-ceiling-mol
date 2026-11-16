@@ -25,3 +25,4 @@ results/**/*.npz
 *.log
 paper/main.pdf
 dist/
+paper/build/
