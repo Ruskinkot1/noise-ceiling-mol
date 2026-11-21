@@ -80,7 +80,8 @@ def main():
                 continue
             dst = D / b
             if not dst.exists():
-                os.symlink(os.path.abspath(f), dst)
+                # относительный линк: каталог переживает перенос или клонирование репозитория
+                os.symlink(os.path.relpath(f, D), dst)
                 n += 1
     print(f"задач {int(tasks.passes.sum())}, строк бенчмарка {len(benchmark)}, "
           f"сплитов {sorted(benchmark.split.unique())}, симлинков {n}")

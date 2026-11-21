@@ -10,6 +10,11 @@ data/*
 !data/processed_clean/
 !data/full_clean/
 !data/full_raw/
+# вторая когорта (24 добавленные задачи) — те же три каталога, что у первой.
+# Коммитятся только задачи, прошедшие отбор; остальные кандидаты из ext_* остаются локальными.
+!data/raw_ext/
+!data/ext_raw/
+!data/ext_clean/
 !data/pilot_clean/
 !data/pilot_raw/
 # Results: summary tables are tracked, per-task prediction dumps are not (they are large and
