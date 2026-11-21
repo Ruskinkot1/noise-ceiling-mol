@@ -50,6 +50,9 @@ def main():
     else:
         print("сплит по документам не найден, собираю без него")
     benchmark = pd.concat(bm, ignore_index=True)
+    # устойчивый порядок строк: иначе пересборка даёт файл, отличающийся от закоммиченного
+    # только перестановкой, и git показывает тысячи строк мнимого диффа
+    benchmark = benchmark.sort_values(["task", "split", "seed", "model"], kind="stable").reset_index(drop=True)
     benchmark.to_csv(R / "benchmark.csv", index=False)
 
     pd.concat([pd.read_csv("results/full_clean/ceilings.csv"),
