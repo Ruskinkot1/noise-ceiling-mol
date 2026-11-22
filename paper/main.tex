@@ -1,4 +1,9 @@
-% Preprint version (arXiv / ChemRxiv). Plain article class; no conference style.
+% Preprint rendering (arXiv / ChemRxiv) of the manuscript submitted to Journal
+% of Cheminformatics. The text is the same file for both: body.tex. This one
+% differs only in the rendering — single spacing, no line numbers — so the
+% preprint and the submission can never drift apart.
+% The earlier preprint, before the manuscript was restructured for the journal,
+% is preserved on the branch and tag preprint-v2.
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage[utf8]{inputenc}
@@ -9,6 +14,10 @@
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\Var}{\mathrm{Var}}
 
+% the journal file wraps shared sections in groups that demote their headings;
+% the same environment is defined here so that body.tex renders identically
+\newenvironment{jcgroup}{\begingroup\let\section\subsection\let\subsection\subsubsection}{\endgroup}
+
 \title{Noise Ceilings for Molecular Potency Benchmarks:\\ Measuring Label Noise from Independent ChEMBL Documents}
 \author{
   Ruslan Lukin\\ Innopolis University, Innopolis, Russia\\ \texttt{r.lukin@innopolis.university}
@@ -17,25 +26,9 @@
 }
 \date{\today}
 
-\emergencystretch=1em  % allow slightly looser spacing instead of overfull lines
+\emergencystretch=1em
 
 \begin{document}
 \maketitle
-\input{sections/abstract}
-\input{sections/introduction}
-\input{sections/related}
-\input{sections/data}
-\input{sections/ceiling}
-\input{sections/benchmark}
-\input{sections/results}
-\input{sections/provenance}
-\input{sections/document_support}
-\input{sections/docsplit}
-\input{sections/limitations}
-\input{sections/availability}
-\bibliographystyle{unsrt}
-\bibliography{references}
-\input{sections/appendix}
-\input{sections/mde_method}
-\input{sections/datasheet}
+\input{body}
 \end{document}
