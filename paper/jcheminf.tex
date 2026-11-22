@@ -1,0 +1,88 @@
+% Journal of Cheminformatics submission version.
+% The preprint version is main.tex and is NOT built from this file; both share
+% the files in sections/, so a change to the science lands in both.
+%
+% Journal requirements this file implements (submission guidelines, Research):
+%   - section order Introduction / Methods / Results / Discussion / Conclusions
+%     / List of abbreviations / Declarations / References;
+%   - abstract of at most 350 words with a "Scientific Contribution" statement;
+%   - three to ten keywords;
+%   - double line spacing, line and page numbering, no page breaks;
+%   - every URL cited as a numbered reference, not printed in the text.
+% The shared section files keep their own \section headings; the groups below
+% demote them to \subsection, so sections/ stays usable by both versions and by
+% scripts/make_paper_tables.py.
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,booktabs,xcolor,enumitem,graphicx}
+\usepackage{setspace,lineno}
+\usepackage[hidelinks]{hyperref}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+
+% group of shared section files under one journal-mandated heading
+\newenvironment{jcgroup}{\begingroup\let\section\subsection\let\subsection\subsubsection}{\endgroup}
+
+\title{Noise Ceilings for Molecular Potency Benchmarks:\\ Measuring Label Noise from Independent ChEMBL Documents}
+\author{
+  Ruslan Lukin\thanks{Corresponding author.}\\ Innopolis University, Innopolis, Russia\\ \texttt{r.lukin@innopolis.university}
+  \and
+  Anastasiya Rychkova\\ Innopolis University, Innopolis, Russia
+}
+\date{\today}
+
+\emergencystretch=1em
+
+\begin{document}
+\doublespacing
+\linenumbers
+\maketitle
+\input{sections/jc_abstract}
+
+% introduction.tex and results.tex already carry the heading the journal wants,
+% so they are input ungrouped and only the files that follow them are demoted.
+\input{sections/introduction}
+\begin{jcgroup}
+\input{sections/related}
+\end{jcgroup}
+
+\section{Methods}
+\begin{jcgroup}
+\input{sections/data}
+\input{sections/ceiling}
+\input{sections/benchmark}
+\input{sections/jc_software_note}
+\end{jcgroup}
+
+\input{sections/results}
+\begin{jcgroup}
+\input{sections/provenance}
+\input{sections/document_support}
+\input{sections/docsplit}
+\end{jcgroup}
+
+\section{Discussion}
+\begin{jcgroup}
+\input{sections/jc_discussion}
+\end{jcgroup}
+
+\section{Conclusions}
+\input{sections/jc_conclusions}
+
+\section*{List of abbreviations}
+\input{sections/jc_abbreviations}
+
+\section*{Declarations}
+\input{sections/jc_declarations}
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\appendix
+\input{sections/appendix}
+\input{sections/mde_method}
+\input{sections/datasheet}
+\end{document}
