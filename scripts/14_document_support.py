@@ -52,9 +52,13 @@ def support_table(preds: pd.DataFrame, datadir: str, model: str, splits) -> pd.D
         only_doc = m.groupby("mol_id")["doc_id"].first()   # для n_docs==1 это и есть её документ
         doc_size = md.groupby("doc_id")["mol_id"].nunique()
         for sp in splits:
-            p = p0[(p0["split"] == sp) & (p0["n_docs"] == 1)]
+            p_split = p0[p0["split"] == sp]
+            p = p_split[p_split["n_docs"] == 1]
             for seed, g in p.groupby("seed"):
-                test_ids = set(g["mol_id"])
+                # из обучения исключается ВЕСЬ тест этого сплита и зерна, а не только молекулы
+                # с одним документом: иначе многодокументные тестовые молекулы считаются
+                # поддержкой, и на сплите по документам доля нулевой поддержки падает с 82% до 59%
+                test_ids = set(p_split.loc[p_split["seed"] == seed, "mol_id"])
                 train_docs = md[~md.mol_id.isin(test_ids)].groupby("doc_id")["mol_id"].nunique()
                 doc = g["mol_id"].map(only_doc)
                 out.append(pd.DataFrame({

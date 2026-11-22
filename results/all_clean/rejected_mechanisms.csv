@@ -1,0 +1,6 @@
+model,split,mechanism,quantity,value,p,n
+ecfp_gbm,random,i_task_concentration,n_documents,-0.07787456445993032,0.6284171281418495,41
+ecfp_gbm,random,i_task_concentration,largest_doc_share,0.1918118466898955,0.22959337814668326,41
+ecfp_gbm,random,ii_lab_offsets,author_gap,0.03652173913043478,0.8654631927363388,24
+ecfp_gbm,random,iii_heteroscedasticity,median_within_task_rho,-0.006804330534528338,1.0,41
+ecfp_gbm,random,iii_heteroscedasticity,tasks_positive,20.0,,41
